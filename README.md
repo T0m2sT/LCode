@@ -79,3 +79,4 @@ Group members:
 Miguel Rocha up202405484@up.pt
 <first name> <family name> (<email address>)
 Rafael Silva up202406334@up.pt
+
