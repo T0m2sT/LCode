@@ -41,12 +41,12 @@ int rtc_read_date(rtc_date *date) {
     tickdelay(micros_to_ticks(50));
     if (rtc_read_reg(RTC_REG_A, &regB) != 0)
       return 1;
-  } while (regB & 0x80);
+  } while (regB & RTC_UIP_MSK);
 
   if (rtc_read_reg(RTC_REG_B, &regB) != 0)
     return 1;
 
-  bool isBCD = !(regB & 0x04);
+  bool isBCD = !(regB & RTC_DM_MSK);
 
   if (rtc_read_reg(RTC_REG_DAY, &day) != 0) return 1;
   if (rtc_read_reg(RTC_REG_MONTH, &month) != 0) return 1;
