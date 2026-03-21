@@ -5,14 +5,14 @@
 
 #include "i8254.h"
 
-int int_counter = 0;
+uint32_t int_counter = 0;
 int hook_id = 0;
 
-int get_counter() {
+uint32_t get_counter() {
   return int_counter;
 }
 
-void set_counter(int value) {
+void set_counter(uint32_t value) {
   int_counter = value;
 }
 
