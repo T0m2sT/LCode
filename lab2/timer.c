@@ -17,7 +17,7 @@ void set_counter(uint32_t value) {
 }
 
 int(timer_set_frequency)(uint8_t timer, uint32_t freq) {
-  if (freq == 0 && freq > TIMER_FREQ) return 1;
+  if (freq == 0 || freq > TIMER_FREQ) return 1;
 
   uint8_t st;
 
