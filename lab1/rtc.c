@@ -43,6 +43,7 @@ int rtc_read_date(rtc_date *date) {
       return 1;
   } while (regA & RTC_UIP_MSK);
 
+
   if (rtc_read_reg(RTC_REG_B, &regB) != 0)
     return 1;
 
