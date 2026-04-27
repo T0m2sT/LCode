@@ -8,6 +8,7 @@
 
 #include "../lab3/kbc.h"
 #include "video.h"
+#include "VBE.h"
 
 // Any header files included below this line should have been created by you
 
@@ -124,8 +125,22 @@ int(video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
 }
 
 int(video_test_xpm)(xpm_map_t xpm, uint16_t x, uint16_t y) {
-    /* To be completed */
-    printf("%s(%8p, %u, %u): under construction\n", __func__, xpm, x, y);
 
+  if (vg_map_vram(VBE_768p_INDEXED) != OK) return 1;
+
+  if (set_graphics_mode(VBE_768p_INDEXED) != OK) return 1;
+
+  if (print_xpm(xpm, x, y) != OK) {
+    set_text_mode();
     return 1;
+  }
+
+  if (waiting_esc_key() != OK) {
+    set_text_mode();
+    return 1;
+  }
+
+  if (set_text_mode() != OK) return 1;
+
+  return 0;
 }
