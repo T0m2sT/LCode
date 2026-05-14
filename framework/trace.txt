@@ -26,7 +26,7 @@
   @src/drivers/rtc.c:16, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
   > sys_inb(0x71, addr: 0xeffff780)
-  < sys_inb(0x71, addr: 0xeffff780 [0x12 = 0b00010010])
+  < sys_inb(0x71, addr: 0xeffff780 [0x14 = 0b00010100])
   @src/drivers/rtc.c:13, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x08 = 0b00001000)
@@ -41,16 +41,21 @@
     sys_inb(RTC_DATA_REG, &tmp)
   > sys_inb(0x71, addr: 0xeffff780)
   < sys_inb(0x71, addr: 0xeffff780 [0x26 = 0b00100110])
-  @main.c:18, rtc_example
-    printf("\nday: %u \n", date.day)
-    "
-day: 12 "
-  @main.c:19, rtc_example
+  @main.c:47, rtc_example
+    printf("\n\n")
+    ""
+  @main.c:48, rtc_example
+    printf("RTC EXAMPLE \n")
+    "RTC EXAMPLE "
+  @main.c:49, rtc_example
+    printf("day: %u \n", date.day)
+    "day: 14 "
+  @main.c:50, rtc_example
     printf("month: %u \n", date.month)
     "month: 5 "
-  @main.c:20, rtc_example
-    printf("year: %u \n", date.year)
-    "year: 26 "
+  @main.c:51, rtc_example
+    printf("year: %u", date.year)
+    "year: 26"
   @src/drivers/rtc.c:29, rtc_read_date
     micros_to_ticks(50)
   @src/drivers/rtc.c:29, rtc_read_date
@@ -76,7 +81,7 @@ day: 12 "
   @src/drivers/rtc.c:16, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
   > sys_inb(0x71, addr: 0xeffff768)
-  < sys_inb(0x71, addr: 0xeffff768 [0x12 = 0b00010010])
+  < sys_inb(0x71, addr: 0xeffff768 [0x14 = 0b00010100])
   @src/drivers/rtc.c:13, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x08 = 0b00001000)
@@ -91,13 +96,19 @@ day: 12 "
     sys_inb(RTC_DATA_REG, &tmp)
   > sys_inb(0x71, addr: 0xeffff768)
   < sys_inb(0x71, addr: 0xeffff768 [0x26 = 0b00100110])
-  @main.c:33, test_rtc_date
+  @main.c:64, test_rtc_date
+    printf("\n\n")
+    ""
+  @main.c:65, test_rtc_date
+    printf("RTC TEST \n")
+    "RTC TEST "
+  @main.c:67, test_rtc_date
     printf("%s passed.\n", "rtc read day")
     "rtc read day passed."
-  @main.c:34, test_rtc_date
+  @main.c:68, test_rtc_date
     printf("%s passed.\n", "rtc read month")
     "rtc read month passed."
-  @main.c:35, test_rtc_date
+  @main.c:69, test_rtc_date
     printf("%s passed.\n", "rtc read year")
     "rtc read year passed."
 < proj_main_loop(0, [NULL]) -> (ret: 0)

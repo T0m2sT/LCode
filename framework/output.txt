@@ -1,7 +1,11 @@
 
-day: 12 
+
+RTC EXAMPLE 
+day: 14 
 month: 5 
-year: 26 
+year: 26
+
+RTC TEST 
 rtc read day passed.
 rtc read month passed.
 rtc read year passed.
