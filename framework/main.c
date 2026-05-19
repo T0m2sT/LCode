@@ -71,6 +71,7 @@ void test_rtc_date() {
 }
 
 void error_example() {
+  fail(WARN, "This is a Warning");
   fail(ERR, "This is an Error");
   fail(ERR_RTC, "This is a RTC Error");
   fail(ERR_TIMER, "This is a Timer Error");

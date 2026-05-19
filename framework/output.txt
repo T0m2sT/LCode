@@ -1,4 +1,7 @@
 
+Warning
+This is a Warning
+
 Error
 This is an Error
 

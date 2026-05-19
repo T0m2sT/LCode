@@ -20,6 +20,10 @@ int (util_sys_inb)(int port, uint8_t *value) {
 void print_err_type(ErrorType error_type) {
   switch (error_type)
   {
+    case WARN:
+      fprintf(stderr, "\nWarning\n");
+      break;
+
     case ERR:
       fprintf(stderr, "\nError\n");
       break;

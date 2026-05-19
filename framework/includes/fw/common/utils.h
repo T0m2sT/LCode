@@ -3,6 +3,7 @@
 #include <lcom/utils.h>
 
 typedef enum {
+  WARN,
   ERR,
   ERR_RTC,
   ERR_TIMER,
