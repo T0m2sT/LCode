@@ -1,7 +1,7 @@
 #include "fw/drivers/keyboard.h"
 
 static bool error=false;
-static int hook_id;
+static int hook_id=1;
 static uint8_t scancode;
 
 static uint8_t size=0;
@@ -14,13 +14,13 @@ uint8_t get_scancode(){
   return scancode;
 }
 
-bool get_error_keyboard(){
+bool did_error_occur(){
   return error;
 }
 
 int build_scancode(struct packet_scancode *ps){
   bytes[size]=scancode;
-  if (scancode==0xE0){
+  if (scancode==TWO_BYTE){
     size++;
     return 1;
   }
@@ -35,39 +35,52 @@ int build_scancode(struct packet_scancode *ps){
 
 void (keyboard_ih)(){
   uint8_t status;
-  if (util_sys_inb(KBC_STATUS_REG,&status)!=0){
-    error=true;
+  uint8_t data;
+    
+  // Read status register
+  if (util_sys_inb(KBC_STATUS_REG, &status) != OK) {
+    error = true;
     return;
   }
 
-  if (status&KBC_ST_OBF){//se o buffer estiver cheio
-    uint8_t data;
-    if (util_sys_inb(KBC_DATA_REG,&data)!=0){//mesmo que possa haver erro, ler sempre valor
-      error=true;
-      return;
-    }
+  // Check if output buffer is full
+  if (!(status & KBC_ST_OBF)){
+    error = true;
+    return;
+  }
 
-    if (status&(KBC_PAR_ERR|KBC_TOUT_ERR)){//detetar o erro, bits 6 e 7
-      error=true;
-      return;
-    }
-    
-    error=false;
-    set_scancode(data);
+  // Check for errors
+  if (status & (KBC_PAR_ERR | KBC_TOUT_ERR)){
+    error = true;
+    return;
   }
-  else{
-    error=true;
+
+  // Read scancode byte
+  if (util_sys_inb(KBC_DATA_REG, &data) != OK){
+    error = true;
+    return;
   }
+
+
+  set_scancode_byte(data);
   
 }
 
 int (keyboard_subscribe_int)(uint8_t *bit_no){
-  hook_id = *bit_no;
-  if (sys_irqsetpolicy(KEYBOARD_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id)!=0) return 1;
+  *bit_no = hook_id;
+
+  if (sys_irqsetpolicy(KEYBOARD_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != OK) {
+    return 1;
+  }
+
   return 0;
 }
 
 int (keyboard_unsubscribe_int)() {
-  if (sys_irqrmpolicy(&hook_id)!=0) return 1;
+
+  if (sys_irqrmpolicy(&hook_id) != OK) {
+    return 1;
+  }
+
   return 0;
 }

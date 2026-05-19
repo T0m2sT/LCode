@@ -45,6 +45,9 @@
 
 #define BREAKCODE BIT(7)
 
+/* Scancode Constants*/
+#define TWO_BYTE 0xE0
+
 /* KBC functions*/
 
 int (kbc_wait_input_empty)();

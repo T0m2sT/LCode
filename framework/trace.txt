@@ -1,46 +1,46 @@
 @lcflib.a:2019, lcf_start
   proj_main_loop(argc, argv)
 > proj_main_loop(0, [NULL])
-  @src/drivers/rtc.c:29, rtc_read_date
+  @src/drivers/rtc.c:30, rtc_read_date
     micros_to_ticks(50)
-  @src/drivers/rtc.c:29, rtc_read_date
+  @src/drivers/rtc.c:30, rtc_read_date
     tickdelay(micros_to_ticks(50))
   > tickdelay(1 [16.7 ms])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x0a = 0b00001010)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff778)
-  < sys_inb(0x71, addr: 0xeffff778 [0x26 = 0b00100110])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff750)
+  < sys_inb(0x71, addr: 0xeffff750 [0x26 = 0b00100110])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x0b = 0b00001011)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff778)
-  < sys_inb(0x71, addr: 0xeffff778 [0x02 = 0b00000010])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff750)
+  < sys_inb(0x71, addr: 0xeffff750 [0x02 = 0b00000010])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x07 = 0b00000111)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff778)
-  < sys_inb(0x71, addr: 0xeffff778 [0x17 = 0b00010111])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff750)
+  < sys_inb(0x71, addr: 0xeffff750 [0x19 = 0b00011001])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x08 = 0b00001000)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff778)
-  < sys_inb(0x71, addr: 0xeffff778 [0x05 = 0b00000101])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff750)
+  < sys_inb(0x71, addr: 0xeffff750 [0x05 = 0b00000101])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x09 = 0b00001001)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff778)
-  < sys_inb(0x71, addr: 0xeffff778 [0x26 = 0b00100110])
+  > sys_inb(0x71, addr: 0xeffff750)
+  < sys_inb(0x71, addr: 0xeffff750 [0x26 = 0b00100110])
   @main.c:48, rtc_example
     printf("\n\n")
     ""
@@ -49,53 +49,53 @@
     "RTC EXAMPLE "
   @main.c:50, rtc_example
     printf("day: %u \n", date.day)
-    "day: 17 "
+    "day: 19 "
   @main.c:51, rtc_example
     printf("month: %u \n", date.month)
     "month: 5 "
   @main.c:52, rtc_example
     printf("year: %u", date.year)
     "year: 26"
-  @src/drivers/rtc.c:29, rtc_read_date
+  @src/drivers/rtc.c:30, rtc_read_date
     micros_to_ticks(50)
-  @src/drivers/rtc.c:29, rtc_read_date
+  @src/drivers/rtc.c:30, rtc_read_date
     tickdelay(micros_to_ticks(50))
   > tickdelay(1 [16.7 ms])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x0a = 0b00001010)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff760)
-  < sys_inb(0x71, addr: 0xeffff760 [0x26 = 0b00100110])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff738)
+  < sys_inb(0x71, addr: 0xeffff738 [0x26 = 0b00100110])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x0b = 0b00001011)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff760)
-  < sys_inb(0x71, addr: 0xeffff760 [0x02 = 0b00000010])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff738)
+  < sys_inb(0x71, addr: 0xeffff738 [0x02 = 0b00000010])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x07 = 0b00000111)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff760)
-  < sys_inb(0x71, addr: 0xeffff760 [0x17 = 0b00010111])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff738)
+  < sys_inb(0x71, addr: 0xeffff738 [0x19 = 0b00011001])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x08 = 0b00001000)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff760)
-  < sys_inb(0x71, addr: 0xeffff760 [0x05 = 0b00000101])
-  @src/drivers/rtc.c:13, rtc_read_reg
+  > sys_inb(0x71, addr: 0xeffff738)
+  < sys_inb(0x71, addr: 0xeffff738 [0x05 = 0b00000101])
+  @src/drivers/rtc.c:14, rtc_read_reg
     sys_outb(RTC_ADDR_REG, reg)
   > sys_outb(0x70, 0x09 = 0b00001001)
-  @src/drivers/rtc.c:16, rtc_read_reg
+  @src/drivers/rtc.c:17, rtc_read_reg
     sys_inb(RTC_DATA_REG, &tmp)
-  > sys_inb(0x71, addr: 0xeffff760)
-  < sys_inb(0x71, addr: 0xeffff760 [0x26 = 0b00100110])
+  > sys_inb(0x71, addr: 0xeffff738)
+  < sys_inb(0x71, addr: 0xeffff738 [0x26 = 0b00100110])
   @main.c:65, test_rtc_date
     printf("\n\n")
     ""
