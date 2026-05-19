@@ -1,4 +1,5 @@
 #include "fw/drivers/keyboard.h"
+#include "fw/common/utils.h"
 
 static bool error=false;
 static int hook_id=1;
@@ -18,6 +19,7 @@ bool did_error_occur(){
   return error;
 }
 
+/* REFACTOR LATER
 int build_scancode(struct packet_scancode *ps){
   bytes[size]=scancode;
   if (scancode==TWO_BYTE){
@@ -31,47 +33,42 @@ int build_scancode(struct packet_scancode *ps){
   size=0;
   return 0;
 }
+*/
 
-
-void (keyboard_ih)(){
+void (keyboard_ih)() {
   uint8_t status;
   uint8_t data;
-    
-  // Read status register
+
   if (util_sys_inb(KBC_STATUS_REG, &status) != OK) {
-    error = true;
+    fail(ERR_KEYBOARD, "keyboard_ih: failed to read status register");
     return;
   }
 
-  // Check if output buffer is full
-  if (!(status & KBC_ST_OBF)){
-    error = true;
+  if (!(status & KBC_ST_OBF)) {
+    fail(ERR_KEYBOARD, "keyboard_ih: output buffer not full");
     return;
   }
 
-  // Check for errors
-  if (status & (KBC_PAR_ERR | KBC_TOUT_ERR)){
-    error = true;
+  if (status & (KBC_PAR_ERR | KBC_TOUT_ERR)) {
+    fail(ERR_KEYBOARD, "keyboard_ih: parity or timeout error");
     return;
   }
 
-  // Read scancode byte
-  if (util_sys_inb(KBC_DATA_REG, &data) != OK){
-    error = true;
+  if (util_sys_inb(KBC_DATA_REG, &data) != OK) {
+    fail(ERR_KEYBOARD, "keyboard_ih: failed to read data register");
     return;
   }
-
 
   set_scancode_byte(data);
-  
 }
 
 int (keyboard_subscribe_int)(uint8_t *bit_no){
-  *bit_no = hook_id;
-
+  
   if (sys_irqsetpolicy(KEYBOARD_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != OK) {
-    return 1;
+    return fail(ERR_KEYBOARD, "keyboard_subscribe_int: sys_irqsetpolicy failed");
   }
+  
+  *bit_no = hook_id;
 
   return 0;
 }
@@ -79,7 +76,7 @@ int (keyboard_subscribe_int)(uint8_t *bit_no){
 int (keyboard_unsubscribe_int)() {
 
   if (sys_irqrmpolicy(&hook_id) != OK) {
-    return 1;
+    return fail(ERR_KEYBOARD, "keyboard_unsubscribe_int: sys_irqrmpolicy failed");
   }
 
   return 0;

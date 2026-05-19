@@ -11,11 +11,14 @@ This is a RTC Error
 Timer Error
 This is a Timer Error
 
-Mouse Error
-This is a Mouse Error
+KBC Error
+This is a KBC Error
 
 Keyboard Error
 This is a Keybooard Error
+
+Mouse Error
+This is a Mouse Error
 
 Video Error
 This is a Video Error
