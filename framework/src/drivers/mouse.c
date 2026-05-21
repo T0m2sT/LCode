@@ -40,11 +40,12 @@ int build_packet(struct packet *pp) {
 }
 
 int mouse_subscribe_int(uint8_t *bit_no) {
+  *bit_no = hook_id;
+
   if (sys_irqsetpolicy(KBD_AUX_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != OK) {
     return fail(ERR_MOUSE, "mouse_subscribe_int: sys_irqsetpolicy failed");
   }
-  *bit_no = hook_id;
-  
+
   return 0;
 }
 

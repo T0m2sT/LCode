@@ -13,7 +13,7 @@ LDADD += -llcf -L.                          # Tell the compiler to look in the c
 LDADD += -llcomfw                            #   and link the library named libtimers.a
 
 LIB_NAME = liblcomfw.a                       # The name filename for your library
-LIB_SRCS = utils.c rtc.c timer.c # The source files to include
+LIB_SRCS = utils.c rtc.c timer.c keyboard.c # The source files to include
 LIB_OBJS = ${LIB_SRCS:.c=.o}                # The rule used to convert your .c source files in .o object files
 .PATH: src/common src/drivers
 CLEANFILES += ${LIB_NAME} ${LIB_OBJS}       # Add the library file and object files to the files to be cleaned

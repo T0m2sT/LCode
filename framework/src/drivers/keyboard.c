@@ -5,8 +5,8 @@ static bool error=false;
 static int hook_id=1;
 static uint8_t scancode;
 
-static uint8_t size=0;
-static uint8_t bytes[2];
+//static uint8_t size=0;
+//static uint8_t bytes[2];
 
 void set_scancode(uint8_t code){
   scancode=code;
@@ -59,16 +59,15 @@ void (keyboard_ih)() {
     return;
   }
 
-  set_scancode_byte(data);
+  set_scancode(data);
 }
 
 int (keyboard_subscribe_int)(uint8_t *bit_no){
-  
+  *bit_no = hook_id;
+
   if (sys_irqsetpolicy(KEYBOARD_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != OK) {
     return fail(ERR_KEYBOARD, "keyboard_subscribe_int: sys_irqsetpolicy failed");
   }
-  
-  *bit_no = hook_id;
 
   return 0;
 }
@@ -80,4 +79,24 @@ int (keyboard_unsubscribe_int)() {
   }
 
   return 0;
+}
+
+int (keyboard_print_scancode)(bool make, uint8_t size, uint8_t *bytes) {
+    if (bytes == NULL || size == 0) {
+        return fail(ERR_KEYBOARD, "Invalid scancode bytes or size");
+    }
+
+    printf("%s code: ", make ? "MAKE" : "BREAK");
+
+    for (uint8_t i = 0; i < size; i++) {
+        printf("0x%02X", bytes[i]);
+
+        if (i < size - 1) {
+            printf(" ");
+        }
+    }
+
+    printf("\n");
+
+    return 0;
 }

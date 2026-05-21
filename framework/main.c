@@ -5,6 +5,7 @@
 #include "fw/drivers/rtc.h"
 #include "fw/drivers/timer.h"
 #include "fw/common/utils.h"
+#include "fw/drivers/keyboard.h"
 
 #ifdef ASSERT
   #undef ASSERT
@@ -28,6 +29,10 @@ void test_rtc_date();
 // Timer
 int timer_example();
 
+// Keyboard
+#define ESC_BREAK 0x81
+int keyboard_example();
+
 int(proj_main_loop)(int argc, char *argv[]) {
   if (argc != 1) {
     printf("Usage:\n");
@@ -46,6 +51,7 @@ int(proj_main_loop)(int argc, char *argv[]) {
       timer_example();
 
     } else if (strcmp(argv[0], "keyboard") == 0) {
+      keyboard_example();
 
     } else if (strcmp(argv[0], "mouse") == 0) {
 
@@ -156,5 +162,77 @@ int timer_example() {
 
   timer_unsubscribe_int();
 
+  return 0;
+}
+
+int keyboard_example() {
+  printf("\n\n");
+  printf("Keyboard Example \n");
+
+
+  uint8_t bit_no;
+  uint8_t byte;
+  uint8_t size;
+  bool make;
+
+  uint8_t bytes[2];
+  bool two_byte = false;
+
+  int ipc_status;
+  message msg;
+
+  if (keyboard_subscribe_int(&bit_no) != 0)
+    return fail(ERR, "keyboard_example: unable to subscribe keyboard interrupt");
+
+  int irq_set = BIT(bit_no);
+
+  int r;
+  while (1) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+          if (msg.m_notify.interrupts & irq_set) {
+            keyboard_ih();
+
+            byte = get_scancode();
+
+            if (byte == TWO_BYTE) {
+              two_byte = true;
+              bytes[0] = byte;
+              continue;
+            }
+
+            if (two_byte) {
+              bytes[1] = byte;
+              size = 2;
+              two_byte = false;
+            } else {
+              bytes[0] = byte;
+              size = 1;
+            }
+
+            make = !(byte & BIT(7));
+
+            keyboard_print_scancode(make, size, bytes);
+
+            if (bytes[0] == ESC_BREAK) {
+              keyboard_unsubscribe_int();
+              return 0;
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  // Should not reach this
+  keyboard_unsubscribe_int();
   return 0;
 }

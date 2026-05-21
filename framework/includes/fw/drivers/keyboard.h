@@ -19,3 +19,4 @@ void (keyboard_ih)();
 
 int (keyboard_subscribe_int)(uint8_t *bit_no);
 int (keyboard_unsubscribe_int)();
+int (keyboard_print_scancode)(bool make, uint8_t size, uint8_t *bytes);
