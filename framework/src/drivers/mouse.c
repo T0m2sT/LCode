@@ -4,7 +4,7 @@
 
 #define MOUSE_MAX_TRIES 5
 
-static int hook_id = 1;
+static int hook_id = 2;
 static int packet_index = 0;
 static bool packet_ready = false;
 static bool error = false;

@@ -8,7 +8,7 @@
 int(proj_main_loop)(int argc, char *argv[]) {
   if (subscribe_interrupts() != OK)
     return fail(ERR, "proj_main_loop: unable to subscribe interrupts");
-  
+
   if (unsubscribe_interrupts() != OK)
     return fail(ERR, "proj_main_loop: unable to unsubscribe interrupts");
   
