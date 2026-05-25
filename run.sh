@@ -1,25 +1,48 @@
 #!/bin/sh
 
+
 usage() {
-  echo "Usage"
+  echo "  Usage:"
+  echo "    $0 [proj | fw | clean]"
+  echo "    $0 fw <driver>"
+  exit 1
 }
 
-choose_mode() {
-  if [ $1 = "proj" ]; then
-    echo "Run Project"
-  elif [ $1 = "fw" ]; then
-    echo "Run fw"
-  elif [ $1 = "clean" ]; then
-    echo "Run clean"
-  else 
-    usage
-  fi
+build_fw() {
+  cd framework/
+  echo "  Building framework:"
+  make
 }
 
+build_proj() {
+  cd proj/code/
+  echo "  Building project:"
+  make
+}
 
-if [ "$#" -eq 1 ]; then
-    choose_mode $1
-else
-    usage
-    exit 1
+clean_all() {
+  cd framework/
+  make clean
+  cd ../proj/code/
+  make clean
+}
+
+if [ "$1" = "proj" ]; then
+  build_fw
+  cd ../
+  build_proj
+  lcom_run proj
+
+elif [ "$1" = "fw" ]; then
+  build_fw
+  lcom_run proj "$2"
+
+elif [ "$1" = "clean" ]; then
+  clean_all
+
+else 
+  usage $0
+  exit 1
+
 fi
+  
