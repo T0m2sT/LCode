@@ -94,7 +94,7 @@ uint8_t get_scancode(){
   return scancode;
 }
 
-bool did_error_occur(){
+bool get_error_keyboard(){
   return error;
 }
 
