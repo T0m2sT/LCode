@@ -36,6 +36,7 @@ int rtc_example();
 void test_rtc_date();
 
 // Timer
+#define TIMER_HZ 60
 int timer_example();
 
 // Keyboard
@@ -148,10 +149,15 @@ int timer_example() {
   if (timer_subscribe_int(&bit_no) != 0)
     return fail(ERR, "timer_example: unable to subscribe timer interrupt");
 
+  if (timer_set_frequency(0, TIMER_HZ) != OK) {
+    timer_unsubscribe_int();
+    return fail(ERR_TIMER, "timer_example: unable to set timer frequency");
+  }
+
   int irq_set = BIT(bit_no);
 
   int r;
-  while (get_int_counter() < seconds_to_quit*60) {
+  while (get_int_counter() < seconds_to_quit * TIMER_HZ) {
     
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
@@ -167,8 +173,8 @@ int timer_example() {
             
             timer_int_handler();
 
-            if(get_int_counter() % 60 == 0)
-              printf(" -%us\n", get_int_counter()/60);
+            if(get_int_counter() % TIMER_HZ == 0)
+              printf(" -%us\n", get_int_counter() / TIMER_HZ);
             }
           break;
       }
