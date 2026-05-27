@@ -12,7 +12,7 @@ typedef struct {
 } packet_scancode;
 
 const char *scancode_to_char(uint8_t scancode, bool two_byte);
-void print_scancode_value();
+void print_scancode_value(packet_scancode ps);
 
 void set_scancode(uint8_t code);
 uint8_t get_scancode();
