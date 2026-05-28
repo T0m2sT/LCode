@@ -89,6 +89,18 @@ void view_render() {
           prev_row = row;
           break;
 
+        case RENDER_LINE: {
+          int y = EDITOR_Y + row * FONT_H;
+          unsigned line_w = vg_get_h_res() - EDITOR_X;
+          bb_draw_rect(EDITOR_X, y, line_w, FONT_H, COLOR_BG);
+          draw_string(EDITOR_X, y, editor_get_line(row), COLOR_TEXT);
+          draw_cursor(col, row);
+          vg_flip_region(EDITOR_X, y, line_w, FONT_H);
+          prev_col = col;
+          prev_row = row;
+          break;
+        }
+
         case RENDER_WORD: {
           int end = prev_col;
           for (int c = col; c <= end; c++) draw_cell(c, prev_row);

@@ -119,11 +119,12 @@ void commands_dispatch(KeyEvent ev) {
         set_render(RENDER_CHAR);
       } else {
         editor_delete_word();
-        set_render(RENDER_WORD);
+        set_render(RENDER_LINE);
       }
     } else {
+      bool mid_line = (editor_get_cursor_col() > 0);
       editor_delete_char();
-      set_render(RENDER_CHAR);
+      set_render(mid_line ? RENDER_LINE : RENDER_CHAR);
     }
     return;
   }
@@ -169,6 +170,6 @@ void commands_dispatch(KeyEvent ev) {
 
   if (ev.c) {
     editor_insert_char(ev.c);
-    set_render(RENDER_CHAR);
+    set_render(RENDER_LINE);
   }
 }

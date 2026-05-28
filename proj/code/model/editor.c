@@ -25,7 +25,9 @@ void editor_insert_char(char c) {
     return;
   }
 
-  if (cursor_col >= MAX_COLS - 1) return;
+  int len = strlen(lines[cursor_row]);
+  if (len >= MAX_COLS - 1) return;
+  memmove(&lines[cursor_row][cursor_col + 1], &lines[cursor_row][cursor_col], len - cursor_col + 1);
   lines[cursor_row][cursor_col] = c;
   cursor_col++;
 }
@@ -33,7 +35,8 @@ void editor_insert_char(char c) {
 void editor_delete_char() {
   if (cursor_col > 0) {
     cursor_col--;
-    lines[cursor_row][cursor_col] = '\0';
+    int len = strlen(lines[cursor_row]);
+    memmove(&lines[cursor_row][cursor_col], &lines[cursor_row][cursor_col + 1], len - cursor_col);
   } else if (cursor_row > 0) {
     cursor_row--;
     cursor_col = strlen(lines[cursor_row]);
@@ -42,14 +45,11 @@ void editor_delete_char() {
 
 void editor_delete_word() {
   if (cursor_col == 0) return;
-  while (cursor_col > 0 && lines[cursor_row][cursor_col - 1] == ' ') {
-    cursor_col--;
-    lines[cursor_row][cursor_col] = '\0';
-  }
-  while (cursor_col > 0 && lines[cursor_row][cursor_col - 1] != ' ') {
-    cursor_col--;
-    lines[cursor_row][cursor_col] = '\0';
-  }
+  int end = cursor_col;
+  while (cursor_col > 0 && lines[cursor_row][cursor_col - 1] == ' ') cursor_col--;
+  while (cursor_col > 0 && lines[cursor_row][cursor_col - 1] != ' ') cursor_col--;
+  int len = strlen(lines[cursor_row]);
+  memmove(&lines[cursor_row][cursor_col], &lines[cursor_row][end], len - end + 1);
 }
 
 void editor_move_left() {
