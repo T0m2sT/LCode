@@ -14,8 +14,13 @@ void commands_dispatch(KeyEvent ev) {
 
   if (ev.backspace) {
     if (ev.ctrl) {
-      editor_delete_word();
-      set_render(RENDER_WORD);
+      if (editor_get_cursor_col() == 0) {
+        editor_delete_char();
+        set_render(RENDER_CHAR);
+      } else {
+        editor_delete_word();
+        set_render(RENDER_WORD);
+      }
     } else {
       editor_delete_char();
       set_render(RENDER_CHAR);
