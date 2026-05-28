@@ -7,9 +7,9 @@
     "compilerPath": "",
     "cStandard": "c11",
     "defines": ["__minix", "_MINIX", "_NETBSD_SOURCE", "__i386__"],
-    "includePath": ["${workspaceFolder}", "${workspaceFolder}/framework/includes", "${env:minix.include}"],
+    "includePath": ["${workspaceFolder}", "${workspaceFolder}/framework/includes", "${env:minix.include}", "${workspaceFolder}/proj/code", "${workspaceFolder}/proj/code/view", "${workspaceFolder}/proj/code/controller/ih"],
     "browse": {
-      "path": ["${workspaceFolder}", "${workspaceFolder}/framework/includes", "${env:minix.include}"],
+      "path": ["${workspaceFolder}", "${workspaceFolder}/framework/includes", "${env:minix.include}", "${workspaceFolder}/proj/code", "${workspaceFolder}/proj/code/view", "${workspaceFolder}/proj/code/controller/ih"],
       "limitSymbolsToIncludedHeaders": false,
       "databaseFilename": ""
     }
