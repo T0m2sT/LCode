@@ -60,6 +60,12 @@ int vg_map_vram(uint16_t mode) {
   return 0;
 }
 
+void* vg_get_video_mem() { return video_mem; }
+unsigned vg_get_h_res() { return h_res; }
+unsigned vg_get_v_res(){ return v_res; }
+unsigned vg_get_bytes_per_pixel() { return bytes_per_pixel; }
+unsigned vg_get_frame_size() { return frame_size; }
+
 int (vg_draw_pixel)(uint16_t x, uint16_t y, uint32_t color) {
 
   // Out of bounds pixels are ignored intentionally
