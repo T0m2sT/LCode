@@ -1,6 +1,12 @@
 #pragma once
 #include <stdbool.h>
 
+typedef enum {
+  EDITOR_OK,
+  EDITOR_ERR_NO_CLIPBOARD,
+  EDITOR_ERR_DOCUMENT_FULL
+} EditorResult;
+
 #define MAX_LINES 500
 #define MAX_COLS 256
 
@@ -40,3 +46,6 @@ void editor_sel_clear();
 bool editor_sel_is_active();
 void editor_sel_get_range(int *start_row, int *start_col, int *end_row, int *end_col);
 bool editor_consume_sel_dirty();
+
+void editor_copy_selection();
+EditorResult editor_paste();

@@ -1,6 +1,7 @@
 #include "editor.h"
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 static char lines[MAX_LINES][MAX_COLS];
 static int cursor_row = 0;
@@ -18,6 +19,8 @@ static int sel_anchor_row = 0;
 static int sel_anchor_col = 0;
 static bool sel_dirty = false;
 
+static char *clipboard = NULL;
+
 int editor_init() {
   memset(lines, 0, sizeof(lines));
   cursor_row = 0;
@@ -31,7 +34,9 @@ int editor_init() {
   return 0;
 }
 
-void editor_cleanup() {}
+void editor_cleanup() {
+  if (clipboard != NULL) { free(clipboard); clipboard = NULL; }
+}
 
 void editor_set_viewport(int rows, int cols) {
   visible_rows = rows;
@@ -285,4 +290,108 @@ bool editor_consume_sel_dirty() {
   bool d = sel_dirty;
   sel_dirty = false;
   return d;
+}
+
+
+/* Both loops use the same logic: the first row starts at
+  * start_col, the last row ends at end_col, middle rows span the full
+  * line. */
+
+void editor_copy_selection() {
+  if (!sel_active) return;
+  int start_row, start_col, end_row, end_col;
+  editor_sel_get_range(&start_row, &start_col, &end_row, &end_col);
+
+  int size = 0;
+  for (int r = start_row; r <= end_row; r++) {
+    int col_start = (r == start_row) ? start_col : 0;
+    int col_end = (r == end_row) ? end_col : (int)strlen(lines[r]);
+    size += (col_end - col_start) + (r < end_row ? 1 : 0); /* +1 for '\n' between rows */
+  }
+  size++; /* '\0' */
+
+  if (clipboard != NULL) free(clipboard);
+  clipboard = malloc(size);
+  if (clipboard == NULL) return;
+
+  int idx = 0;
+  for (int r = start_row; r <= end_row; r++) {
+    int col_start = (r == start_row) ? start_col : 0;
+    int col_end = (r == end_row) ? end_col : (int)strlen(lines[r]);
+    int len = col_end - col_start;
+    memcpy(&clipboard[idx], &lines[r][col_start], len);
+    idx += len;
+    if (r < end_row) clipboard[idx++] = '\n'; /* no trailing newline after last row */
+  }
+  clipboard[idx] = '\0';
+}
+
+EditorResult editor_paste() {
+  if (clipboard == NULL) return EDITOR_ERR_NO_CLIPBOARD;
+
+  int tail_len = strlen(lines[cursor_row]) - cursor_col;
+
+  /* Count rows */
+  int rows_needed = 1;
+  int col = cursor_col;
+  for (int i = 0; clipboard[i]; i++) {
+    if (clipboard[i] == '\n') {
+      rows_needed++; col = 0;
+    }
+    else if (++col >= MAX_COLS - 1) {
+      rows_needed++; col = 0;
+    }
+  }
+  /* col now holds the final dest_col after pass 2; if the tail won't fit
+   * there, reserve one extra row so it never gets dropped. */
+  if (col + tail_len >= MAX_COLS) rows_needed++;
+
+  if (row_count + rows_needed - 1 > MAX_LINES) return EDITOR_ERR_DOCUMENT_FULL;
+
+  /* Save text after cursor of current line */
+  char tail[MAX_COLS];
+  memcpy(tail, &lines[cursor_row][cursor_col], tail_len + 1);
+  lines[cursor_row][cursor_col] = '\0';
+
+  //Opens rows_needed -1 lines of free space right after the cursor, by moving lines after cursor down
+  //Zeroes out new lines. 
+  if (rows_needed > 1) {
+    memmove(lines[cursor_row + rows_needed], lines[cursor_row + 1], (row_count - cursor_row - 1) * MAX_COLS);
+    memset(lines[cursor_row + 1], 0, (rows_needed - 1) * MAX_COLS);
+  }
+
+
+  int dest_row = cursor_row;
+  int dest_col = cursor_col;
+  const char *p = clipboard;
+
+  //Divide em segmentos - Ou até maximizar a linha ou então '\n'
+  while (*p) {
+    const char *seg_end = p;
+    while (*seg_end && *seg_end != '\n') seg_end++;
+    int seg_len = (int)(seg_end - p);
+
+    while (seg_len > 0) {
+      int space = MAX_COLS - 1 - dest_col;
+      int copy_len = seg_len < space ? seg_len : space;
+      memcpy(&lines[dest_row][dest_col], p, copy_len);
+      lines[dest_row][dest_col + copy_len] = '\0';
+      dest_col += copy_len;
+      p += copy_len;
+      seg_len -= copy_len;
+      if (seg_len > 0) { dest_row++; dest_col = 0; } /* overflow split */
+    }
+
+    if (*p == '\n') { dest_row++; dest_col = 0; p++; }
+  }
+
+  /* Append the saved tail; overflow to the reserved row if it doesn't fit. */
+  if (dest_col + tail_len >= MAX_COLS) { dest_row++; dest_col = 0; }
+  memcpy(&lines[dest_row][dest_col], tail, tail_len + 1);
+
+  cursor_row = dest_row;
+  cursor_col = dest_col;
+  row_count += rows_needed - 1;
+  clamp_scroll();
+  return EDITOR_OK;
 }
