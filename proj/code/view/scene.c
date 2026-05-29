@@ -88,6 +88,8 @@ static void render_status_bar() {
     draw_string(px, sy, input, COLOR_STATUS_FG);
     int cx = px + (int)strlen(input) * FONT_W;
     bb_draw_rect(cx, sy, FONT_W, FONT_H, COLOR_STATUS_FG);
+  } else if (command_bar_get_status()[0] != '\0') {
+    draw_string(4, sy, command_bar_get_status(), 0xFFCC00);
   } else {
     draw_string(4, sy, command_bar_get_filename(), COLOR_STATUS_FG);
   }
