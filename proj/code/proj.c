@@ -12,6 +12,7 @@
 #include "view/scene.h"
 #include "model/editor.h"
 #include "model/command_bar.h"
+#include "model/filetree.h"
 #include "render_flag.h"
 
 
@@ -25,6 +26,7 @@ int(proj_main_loop)(int argc, char *argv[]) {
   chdir(WORK_DIR);
 
   command_bar_init(argc > 1 ? argv[1] : "untitled");
+  filetree_init();
 
   if (editor_init() != OK)
     return fail(ERR, "proj_main_loop: editor_init failed");
