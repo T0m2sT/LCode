@@ -1,4 +1,5 @@
 #include "commands.h"
+#include "filetree_commands.h"
 #include "model/editor.h"
 #include "model/command_bar.h"
 #include "render_flag.h"
@@ -108,7 +109,13 @@ static void dispatch_command_mode(KeyEvent ev) {
   }
 }
 
+void commands_open_file(const char *path) {
+  execute_open(path);
+}
+
 void commands_dispatch(KeyEvent ev) {
+  if (filetree_commands_try(ev)) return;
+
   if (command_bar_get_mode() == MODE_COMMAND) {
     dispatch_command_mode(ev);
     return;
