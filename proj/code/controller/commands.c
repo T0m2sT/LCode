@@ -2,6 +2,7 @@
 #include "filetree_commands.h"
 #include "model/editor.h"
 #include "model/command_bar.h"
+#include "view/scene.h"
 #include "render_flag.h"
 #include <stdio.h>
 #include <string.h>
@@ -217,5 +218,16 @@ void commands_dispatch(KeyEvent ev) {
     if (editor_sel_is_active()) editor_delete_selection();
     editor_insert_char(ev.c);
     set_render_ex(RENDER_LINE);
+  }
+}
+
+void commands_dispatch_mouse(MouseEvent me) {
+  if (!me.left_clicked) return;
+  if (scene_click_scrollbar(me.click_x, me.click_y)) return;
+  int row, col;
+  if (scene_px_to_text(me.click_x, me.click_y, &row, &col)) {
+    editor_sel_clear();
+    editor_set_cursor(row, col);
+    set_render_ex(RENDER_CHAR);
   }
 }
