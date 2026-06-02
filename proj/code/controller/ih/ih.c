@@ -71,6 +71,11 @@ int unsubscribe_interrupts() {
     fail(ERR_MOUSE, "unsubscribe_interrupts: unable to disable mouse data reporting");
   }
 
+  if (serial_unsubscribe_int() != OK) {
+    errors = 1;
+    fail(ERR_SERIAL, "unsubscribe_interrupts: unable to unsubscribe serial interrupt");
+  }
+
   return errors;
 }
 
