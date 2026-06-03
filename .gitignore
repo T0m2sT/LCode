@@ -12,3 +12,4 @@ trace.txt
 *.o
 *.a
 .gdbinit
+docs/

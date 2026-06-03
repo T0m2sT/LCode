@@ -66,21 +66,35 @@ static int lines_ensure_cap(int needed) {
   return 0;
 }
 
+void editor_cleanup() {
+  if (lines){
+    for (int i = 0; i < row_count; i++) free(lines[i].buf);
+    free(lines);
+    lines = NULL;
+    row_cap = 0;
+  }
+  if (clipboard){
+    free(clipboard);
+    clipboard = NULL;
+  }
+}
+
 int editor_init() {
-  memset(lines, 0, sizeof(lines));
+  editor_cleanup();
+
+  row_count = 1;
+  if (lines_ensure_cap(LINES_INIT_CAP) != 0) return -1;
+  lines[0] = (Line){0};
+  if (line_ensure_cap(&lines[0], 0) != 0) return -1;
+
   cursor_row = 0;
   cursor_col = 0;
-  row_count = 1;
   scroll_row = 0;
   scroll_col = 0;
   scroll_dirty = false;
   sel_active = false;
   sel_dirty = false;
   return 0;
-}
-
-void editor_cleanup() {
-  if (clipboard != NULL) { free(clipboard); clipboard = NULL; }
 }
 
 void editor_set_viewport(int rows, int cols) {
