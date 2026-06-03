@@ -7,20 +7,21 @@
 #include "model/command_bar.h"
 #include "model/filetree.h"
 #include "controller/ih/ih.h"
+#include "view/syntax.h"
 #include <string.h>
 
-#define COLOR_BG 0x1E1E1E
-#define COLOR_TEXT 0xFFFFFF
-#define COLOR_SEL_BG 0x264F78
-#define COLOR_STATUS_BG 0x007ACC
-#define COLOR_STATUS_FG 0xFFFFFF
-#define COLOR_GUTTER_BG 0x252526
-#define COLOR_GUTTER_FG 0x858585
-#define COLOR_FILETREE_BG 0x1E1E2E
-#define COLOR_FILETREE_SEL 0x37373D
-#define COLOR_FILETREE_DIR 0x4EC9B0
-#define COLOR_FILETREE_FILE 0xCCCCCC
-#define COLOR_FILETREE_SEP 0x3C3C3C
+#define COLOR_BG 0x282C34
+#define COLOR_TEXT 0xABB2BF
+#define COLOR_SEL_BG 0x3E4451
+#define COLOR_STATUS_BG 0x21252B
+#define COLOR_STATUS_FG 0xABB2BF
+#define COLOR_GUTTER_BG 0x282C34
+#define COLOR_GUTTER_FG 0x4B5263
+#define COLOR_FILETREE_BG 0x21252B
+#define COLOR_FILETREE_SEL 0x2C313C
+#define COLOR_FILETREE_DIR 0x61AFEF
+#define COLOR_FILETREE_FILE 0xABB2BF
+#define COLOR_FILETREE_SEP 0x181A1F
 
 #define FILETREE_COLS 20
 #define FILETREE_W_PX (FILETREE_COLS * FONT_W)
@@ -34,6 +35,8 @@ static void draw_gutter(int scroll_row, int end_r);
 static void draw_filetree(int vrows);
 static void draw_scrollbar();
 static void draw_text_lines(int scroll_row, int end_r, int scroll_col);
+static void draw_line_colored(int x, int y, const char *line, int scroll_col, const uint32_t *colors, int line_len);
+static bool scan_block_comment_state(int up_to_row);
 static void flip_cursor_region(int x, int y);
 
 static SceneID current_scene = SCENE_EDITOR;
@@ -44,6 +47,7 @@ static int vis_cols = MAX_COLS;
 static int filetree_w = 0;
 static int gutter_w = 0;
 static int editor_x = 0;
+static SyntaxLanguage current_lang = SYNTAX_LANG_NONE;
 
 // Public API 
 
@@ -65,6 +69,8 @@ void scene_cleanup() {
 
 int scene_get_vis_rows() { return vis_rows; }
 
+void scene_set_language(SyntaxLanguage lang) { current_lang = lang; }
+
 
 
 
@@ -80,12 +86,18 @@ static int model_to_py(int model_row) {
 
 // Draw primitives
 
-static void draw_cell(int model_col, int model_row) {
+static void draw_cell(int model_col, int model_row, bool in_bc) {
   int x = model_to_px(model_col);
   int y = model_to_py(model_row);
   bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_BG);
   const char *line = editor_get_line(model_row);
-  if (model_col < (int)strlen(line)) draw_char(x, y, line[model_col], COLOR_TEXT);
+  int len = (int)strlen(line);
+  if (model_col < len) {
+    static uint32_t colors[MAX_COLS];
+    bool out_bc;
+    syntax_highlight_line(line, len, in_bc, current_lang, colors, &out_bc);
+    draw_char(x, y, line[model_col], colors[model_col]);
+  }
 }
 
 static void draw_cursor(int model_col, int model_row) {
@@ -212,12 +224,40 @@ static void draw_scrollbar() {
   bb_draw_rect(h_res - SCROLLBAR_W + 2, handle_y, SCROLLBAR_W - 4, handle_h, COLOR_GUTTER_FG);
 }
 
+static void draw_line_colored(int x, int y, const char *line, int scroll_col,
+                              const uint32_t *colors, int line_len) {
+  int draw_x = x;
+  for (int c = scroll_col; c < line_len; c++) {
+    draw_char(draw_x, y, line[c], colors[c]);
+    draw_x += FONT_W;
+  }
+}
+
+static bool scan_block_comment_state(int up_to_row) {
+  bool in_bc = false;
+  static uint32_t dummy[MAX_COLS];
+  for (int r = 0; r < up_to_row; r++) {
+    const char *line = editor_get_line(r);
+    int len = (int)strlen(line);
+    bool out_bc;
+    syntax_highlight_line(line, len, in_bc, current_lang, dummy, &out_bc);
+    in_bc = out_bc;
+  }
+  return in_bc;
+}
+
 static void draw_text_lines(int scroll_row, int end_r, int scroll_col) {
+  uint32_t colors[MAX_COLS];
+  bool in_bc = scan_block_comment_state(scroll_row);
   for (int r = scroll_row; r < end_r; r++) {
     int y = EDITOR_Y + (r - scroll_row) * FONT_H;
     const char *line = editor_get_line(r);
-    if ((int)strlen(line) > scroll_col)
-      draw_string(editor_x, y, line + scroll_col, COLOR_TEXT);
+    int len = (int)strlen(line);
+    bool out_bc;
+    syntax_highlight_line(line, len, in_bc, current_lang, colors, &out_bc);
+    in_bc = out_bc;
+    if (len > scroll_col)
+      draw_line_colored(editor_x, y, line, scroll_col, colors, len);
   }
 }
 
@@ -260,23 +300,34 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
 
       //redraw new line
       const char *line = editor_get_line(row);
-      if ((int)strlen(line) > scroll_col)
-        draw_string(editor_x, y, line + scroll_col, COLOR_TEXT);
+      int len = (int)strlen(line);
+      if (len > scroll_col) {
+        uint32_t colors[MAX_COLS];
+        bool in_bc = scan_block_comment_state(row);
+        bool out_bc;
+        syntax_highlight_line(line, len, in_bc, current_lang, colors, &out_bc);
+        draw_line_colored(editor_x, y, line, scroll_col, colors, len);
+      }
       draw_cursor(col, row);
       break;
     }
 
-    case RENDER_WORD:
-      for (int c = col; c <= prev_col; c++) draw_cell(c, prev_row);
+    case RENDER_WORD: {
+      bool in_bc = scan_block_comment_state(prev_row);
+      for (int c = col; c <= prev_col; c++) draw_cell(c, prev_row, in_bc);
       draw_cursor(col, row);
       break;
+    }
 
     case RENDER_CHAR: {
       bool prev_vis = (prev_row >= scroll_row && prev_row < scroll_row + vis_rows &&
                        prev_col >= scroll_col && prev_col < scroll_col + vis_cols);
       bool curr_vis = (row >= scroll_row && row < scroll_row + vis_rows &&
                        col >= scroll_col && col < scroll_col + vis_cols);
-      if (prev_vis) draw_cell(prev_col, prev_row);
+      if (prev_vis) {
+        bool in_bc = scan_block_comment_state(prev_row);
+        draw_cell(prev_col, prev_row, in_bc);
+      }
       if (curr_vis) draw_cursor(col, row);
       break;
     }
