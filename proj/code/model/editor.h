@@ -52,3 +52,6 @@ bool editor_consume_sel_dirty();
 
 void editor_copy_selection();
 EditorResult editor_paste();
+
+EditorResult editor_load_line(const char *text, int len);
+void editor_load_finalize();

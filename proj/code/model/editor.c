@@ -534,3 +534,22 @@ EditorResult editor_paste() {
   clamp_scroll();
   return EDITOR_OK;
 }
+
+EditorResult editor_load_line(const char *text, int len) {
+  //grows last line to fit new text
+  if (line_ensure_cap(&lines[row_count - 1], len) != 0) return EDITOR_ERR_ALLOC_FAILED;
+
+  memcpy(lines[row_count - 1].buf, text, len + 1);
+  lines[row_count - 1].len = len;
+
+  //Ensures theres an empty line at EOF
+  if (lines_ensure_cap(row_count + 1) != 0) return EDITOR_ERR_ALLOC_FAILED;
+  lines[row_count] = (Line){0};
+  row_count++;
+  return EDITOR_OK;
+}
+
+void editor_load_finalize() {
+  if (row_count > 1 && lines[row_count - 1].len == 0)
+    row_count--;
+}
