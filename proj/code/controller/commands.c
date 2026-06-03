@@ -244,7 +244,7 @@ void commands_dispatch_serial(SerialEvent se) {
       
     case CMD_DELETE_CHAR:{
       bool mid_line = (editor_get_remote_cursor_col() > 0);
-      editor_delete_char();
+      editor_remote_delete_char();
       set_render_ex(mid_line ? RENDER_LINE : RENDER_FULL);
       break;
     }  
