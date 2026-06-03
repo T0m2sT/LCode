@@ -10,6 +10,7 @@ typedef struct {
   char c;
   bool ctrl;
   bool shift;
+  bool altgr;
   bool backspace;
   bool enter;
   bool escape;

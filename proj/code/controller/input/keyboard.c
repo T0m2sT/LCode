@@ -8,6 +8,7 @@
 #define SCANCODE_RCTRL 0x1D
 #define SCANCODE_LSHIFT 0x2A
 #define SCANCODE_RSHIFT 0x36
+#define SCANCODE_RALT   0x38
 #define SCANCODE_UP     0x48
 #define SCANCODE_DOWN   0x50
 #define SCANCODE_LEFT   0x4B
@@ -37,16 +38,29 @@ static const char sc_upper[58] = {
   0,   ' '                                  /* 0x38-0x39 */
 };
 
+static const char sc_altgr[58] = {
+  0,    0,   '1', '@', '3', '4', '5', '6',  /* 0x00-0x07 */
+  '{', '[', ']', '}','\'',  0,    0,  '\t', /* 0x08-0x0F */
+  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',  /* 0x10-0x17 */
+  'o', 'p', '+',  0,    0,    0,  'a', 's', /* 0x18-0x1F */
+  'd', 'f', 'g', 'h', 'j', 'k', 'l',  0,   /* 0x20-0x27 */
+   0,  '\\', 0,  '~', 'z', 'x', 'c', 'v',  /* 0x28-0x2F */
+  'b', 'n', 'm', ',', '.', '-',  0,    0,   /* 0x30-0x37 */
+  0,   ' '                                  /* 0x38-0x39 */
+};
+
 static bool ctrl_pressed = false;
 static bool shift_pressed = false;
+static bool altgr_pressed = false;
 
 void keyboard_process(packet_scancode ps) {
   if (ps.size == 2) {
     uint8_t code2 = ps.bytes[1] & 0x7F;
     if (code2 == SCANCODE_RCTRL) { ctrl_pressed = ps.make; return; }
+    if (code2 == SCANCODE_RALT) { altgr_pressed = ps.make; return; }
     if (!ps.make) return;
     KeyEvent ev = {
-      .c = 0, .ctrl = ctrl_pressed, .shift = shift_pressed,
+      .c = 0, .ctrl = ctrl_pressed, .shift = shift_pressed, .altgr = altgr_pressed,
       .backspace = false, .enter = false, .escape = false, .dir = DIR_NONE
     };
     if (code2 == SCANCODE_LEFT) ev.dir = DIR_LEFT;
@@ -79,7 +93,14 @@ void keyboard_process(packet_scancode ps) {
   else if (code == SCANCODE_ENTER) { ev.enter = true; }
 
   if (!ev.escape && !ev.backspace && !ev.enter && code < 58) {
-    char c = shift_pressed ? sc_upper[code] : sc_lower[code];
+    char c = 0;
+    if (altgr_pressed)
+      c = sc_altgr[code];
+    else if (shift_pressed)
+      c = sc_upper[code];
+    else
+      c = sc_lower[code];
+
     if (c) ev.c = c;
   }
 
