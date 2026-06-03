@@ -19,6 +19,10 @@ static int sel_anchor_row = 0;
 static int sel_anchor_col = 0;
 static bool sel_dirty = false;
 
+static bool remote = false;
+static int remote_cursor_row = -1;
+static int remote_cursor_col = -1;
+
 static char *clipboard = NULL;
 
 int editor_init() {
@@ -31,6 +35,7 @@ int editor_init() {
   scroll_dirty = false;
   sel_active = false;
   sel_dirty = false;
+  remote = false;
   return 0;
 }
 
@@ -81,6 +86,7 @@ void editor_scroll_by(int drow, int dcol) {
 }
 
 void editor_set_cursor(int row, int col) {
+  if (remote_cursor_row == row) return;
   if (row < 0) row = 0;
   if (row >= row_count) row = row_count - 1;
   int len = strlen(lines[row]);
@@ -169,6 +175,7 @@ void editor_move_right() {
 
 void editor_move_up() {
   if (cursor_row > 0) {
+    if (cursor_row - 1 == remote_cursor_row) return; 
     cursor_row--;
     int len = strlen(lines[cursor_row]);
     if (cursor_col > len) cursor_col = len;
@@ -178,6 +185,7 @@ void editor_move_up() {
 
 void editor_move_down() {
   if (cursor_row < row_count - 1) {
+    if (cursor_row + 1 == remote_cursor_row) return;
     cursor_row++;
     int len = strlen(lines[cursor_row]);
     if (cursor_col > len) cursor_col = len;
@@ -395,3 +403,88 @@ EditorResult editor_paste() {
   clamp_scroll();
   return EDITOR_OK;
 }
+
+// Remote
+
+void editor_set_remote_cursor(int row, int col) {
+  if (row == cursor_row) return;
+  
+  remote_cursor_row = row;
+  remote_cursor_col = col;
+}
+
+void editor_remote_insert_char(char c) {
+  if (c == '\n') {
+    if (row_count >= MAX_LINES) return;
+    
+    memmove(lines[remote_cursor_row + 2], lines[remote_cursor_row + 1], (row_count - remote_cursor_row - 1) * MAX_COLS);
+    
+    int split = remote_cursor_col;
+    int tail = strlen(lines[remote_cursor_row]) - split;
+    memcpy(lines[remote_cursor_row + 1], &lines[remote_cursor_row][split], tail + 1);
+    lines[remote_cursor_row][split] = '\0';
+    
+    row_count++;
+    int old_remote_row = remote_cursor_row; 
+    remote_cursor_row++;
+    remote_cursor_col = 0;
+    
+    if (cursor_row > old_remote_row) {
+      cursor_row++;
+    } 
+    
+    clamp_scroll(); 
+    return;
+  }
+
+  int len = strlen(lines[remote_cursor_row]);
+  if (len >= MAX_COLS - 1) return;
+  
+  memmove(&lines[remote_cursor_row][remote_cursor_col + 1], &lines[remote_cursor_row][remote_cursor_col], len - remote_cursor_col + 1);
+  
+  lines[remote_cursor_row][remote_cursor_col] = c;
+  remote_cursor_col++;
+  
+}
+
+void editor_remote_delete_char() {
+  if (remote_cursor_col > 0) { // letter in the mid of the line
+   
+    remote_cursor_col--;
+    int len = strlen(lines[remote_cursor_row]);
+    
+    memmove(&lines[remote_cursor_row][remote_cursor_col], &lines[remote_cursor_row][remote_cursor_col + 1], len - remote_cursor_col);
+    
+        
+  } 
+  else if (remote_cursor_row > 0) { // backspace in the begin of the line
+    
+    int prev_len = strlen(lines[remote_cursor_row - 1]);
+    int curr_len = strlen(lines[remote_cursor_row]);
+    
+    if (prev_len + curr_len >= MAX_COLS) return;
+    
+    memcpy(&lines[remote_cursor_row - 1][prev_len], lines[remote_cursor_row], curr_len + 1);
+    
+    // Lines down, move 1 line up each one
+    memmove(lines[remote_cursor_row], lines[remote_cursor_row + 1], (row_count - remote_cursor_row - 1) * MAX_COLS);
+    
+    // clean trash
+    memset(lines[row_count - 1], 0, MAX_COLS);
+    
+    row_count--;
+    int old_remote_row = remote_cursor_row; 
+    remote_cursor_row--;
+    remote_cursor_col = prev_len;
+  
+    if (cursor_row > old_remote_row) {
+      cursor_row--;
+    }
+  }
+  
+  clamp_scroll(); 
+}
+
+int editor_get_remote_cursor_row(){ return remote_cursor_row;}
+int editor_get_remote_cursor_col(){ return remote_cursor_col;}
+

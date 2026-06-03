@@ -238,17 +238,35 @@ void commands_dispatch_serial(SerialEvent se) {
 
   switch (se.cmd) {
     case CMD_INSERT_CHAR:
-      // TODO
+      editor_remote_insert_char(se.payload_buf[0]);
+      set_render_ex(RENDER_LINE);
       break;
       
-    case CMD_DELETE_CHAR:
-      // TODO
+    case CMD_DELETE_CHAR:{
+      bool mid_line = (editor_get_remote_cursor_col() > 0);
+      editor_delete_char();
+      set_render_ex(mid_line ? RENDER_LINE : RENDER_FULL);
       break;
+    }  
+    case CMD_MOVE_CURSOR:{
+      uint8_t row_msb = se.payload_buf [0];
+      uint8_t row_lsb = se.payload_buf [1];
+      uint8_t col_msb = se.payload_buf [2];
+      uint8_t col_lsb = se.payload_buf [3];
       
-    case CMD_MOVE_CURSOR:
-      // TODO
-      break;
+      int remote_cursor_row = row_msb << 8 | row_lsb;
+      int remote_cursor_col = col_msb << 8 | col_lsb;
 
+      if (editor_get_remote_cursor_row()!=remote_cursor_row){
+        editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
+        set_render_ex(RENDER_FULL);
+      }
+      else{
+        editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
+        set_render_ex(RENDER_LINE);
+      }
+      break;
+    }
     case CMD_FILE_START:
       // TODO
       break;

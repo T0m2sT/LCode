@@ -49,3 +49,11 @@ bool editor_consume_sel_dirty();
 
 void editor_copy_selection();
 EditorResult editor_paste();
+
+// Remote 
+
+void editor_set_remote_cursor(int row, int col);
+void editor_remote_insert_char(char c);
+void editor_remote_delete_char();
+int editor_get_remote_cursor_row();
+int editor_get_remote_cursor_col();
