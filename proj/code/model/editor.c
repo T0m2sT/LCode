@@ -84,7 +84,7 @@ int editor_init() {
 
   row_count = 1;
   if (lines_ensure_cap(LINES_INIT_CAP) != 0) return -1;
-  lines[0] = (Line){0};
+  lines[0] = (Line){NULL, 0, 0};
   if (line_ensure_cap(&lines[0], 0) != 0) return -1;
 
   cursor_row = 0;
@@ -170,7 +170,7 @@ EditorResult editor_insert_char(char c) {
     int tail_len = lines[cursor_row].len - split;
 
     Line *new_line = &lines[cursor_row + 1];
-    new_line->cap = 0; new_line->buf = NULL; new_line->len = 0;
+    *new_line = (Line){NULL, 0, 0};
 
     //make sure newline can hold the tail
     if (line_ensure_cap(new_line, tail_len) != 0){
@@ -233,7 +233,7 @@ EditorResult editor_delete_char() {
     memmove(lines + cursor_row, lines + cursor_row + 1, (row_count - cursor_row - 1) * sizeof(Line));
 
     //zero out last line and update counts
-    lines[row_count - 1] = (Line){0};
+    lines[row_count - 1] = (Line){NULL, 0, 0};
     row_count--;
     cursor_row--; 
     cursor_col = prev_len;
@@ -489,7 +489,7 @@ EditorResult editor_paste() {
       memmove(lines + dest_row + 2, lines + dest_row + 1, (row_count - dest_row - 1) * sizeof(Line));
 
       Line *new_line = &lines[dest_row + 1];
-      new_line->cap = 0; new_line->buf = NULL; new_line->len = 0;
+      *new_line = (Line){NULL, 0, 0};
       if (line_ensure_cap(new_line, 0) != 0) {
         free(tail);
         return EDITOR_ERR_ALLOC_FAILED;
@@ -544,7 +544,7 @@ EditorResult editor_load_line(const char *text, int len) {
 
   //Ensures theres an empty line at EOF
   if (lines_ensure_cap(row_count + 1) != 0) return EDITOR_ERR_ALLOC_FAILED;
-  lines[row_count] = (Line){0};
+  lines[row_count] = (Line){NULL, 0, 0};
   row_count++;
   return EDITOR_OK;
 }
