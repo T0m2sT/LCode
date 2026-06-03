@@ -1,5 +1,5 @@
 #include "font.h"
-#include "video.h"
+#include "fw/drivers/video.h"
 
 /* IBM VGA 8x16 bitmap font — public domain (CP437) */
 static const uint8_t font_8x16[128][16] = {

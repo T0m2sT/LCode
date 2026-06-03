@@ -6,17 +6,18 @@
 
 #define WORK_DIR "/home/lcom/labs/proj/docs"
 
+#include "fw/drivers/video.h"
+#include "fw/hw/vbe.h"
 #include "fw/drivers/serial_port.h"
 #include "controller/ih/ih.h"
 #include "controller/commands.h"
-#include "view/video.h"
 #include "view/scene.h"
 #include "model/editor.h"
 #include "model/command_bar.h"
 #include "model/filetree.h"
 #include "render_flag.h"
 
-
+#define VIDEO_MODE VBE_864p_DC
 #define TIMER_HZ 60
 
 int(proj_main_loop)(int argc, char *argv[]) {
@@ -32,7 +33,7 @@ int(proj_main_loop)(int argc, char *argv[]) {
   if (editor_init() != OK)
     return fail(ERR, "proj_main_loop: editor_init failed");
 
-  if (video_init() != OK)
+  if (video_init(VIDEO_MODE) != OK)
     return fail(ERR_VIDEO, "proj_main_loop: video_init failed");
 
   if (scene_init(SCENE_EDITOR) != OK) {

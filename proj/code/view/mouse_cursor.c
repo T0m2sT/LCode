@@ -1,6 +1,5 @@
 #include "mouse_cursor.h"
 #include "cursor.xpm.h"
-#include "video.h"
 #include "fw/drivers/video.h"
 #include <stdlib.h>
 
