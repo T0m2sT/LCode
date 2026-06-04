@@ -90,12 +90,14 @@ const FileEntry *filetree_get_entry(int i) {
   return &entries[i];
 }
 
-void filetree_move_up() {
+void filetree_move_up(int vis_rows) {
+  if (cursor > scroll + vis_rows) cursor = scroll + vis_rows;
   if (cursor > 0) cursor--;
   if (cursor < scroll) scroll = cursor;
 }
 
 void filetree_move_down(int vis_rows) {
+  if (cursor < scroll) cursor = scroll-1;
   if (cursor < entry_count - 1) cursor++;
   if (cursor >= scroll + vis_rows) scroll = cursor - vis_rows + 1;
 }

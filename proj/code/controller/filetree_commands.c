@@ -34,7 +34,7 @@ static void dispatch_filetree_mode(KeyEvent ev) {
     return;
   }
   if (ev.dir == DIR_UP) {
-    filetree_move_up();
+    filetree_move_up(scene_get_vis_rows());
     set_render(RENDER_FULL);
     return;
   }

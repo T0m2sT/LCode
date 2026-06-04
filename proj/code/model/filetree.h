@@ -32,7 +32,7 @@ int filetree_get_scroll();
 
 void filetree_scroll_by(int delta, int vis_rows);
 
-void filetree_move_up();
+void filetree_move_up(int vis_rows);
 void filetree_move_down(int vis_rows);
 void filetree_set_cursor(int idx, int vis_rows);
 FiletreeResult filetree_go_parent();
