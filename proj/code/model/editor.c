@@ -677,6 +677,57 @@ EditorResult editor_remote_delete_char() {
   return EDITOR_OK; 
 }
 
+EditorResult editor_remote_replace_block(int start_row, int deleted_count, int inserted_count) {
+  if (start_row < 0 || start_row > row_count) return EDITOR_OK;
+
+  //Delete 
+  int actual_deleted = deleted_count;
+  if (start_row + actual_deleted > row_count) actual_deleted = row_count - start_row;
+    
+  for (int i = 0; i < actual_deleted; i++) {
+    free(lines[start_row + i].buf);
+  }
+
+  //Move 
+  int shift_offset = inserted_count - actual_deleted;
+  if (shift_offset > 0) {
+    if (lines_ensure_cap(row_count + shift_offset) != 0) return EDITOR_ERR_ALLOC_FAILED;
+  }
+
+  int remaining_lines = row_count - (start_row + actual_deleted);
+  if (remaining_lines > 0) {
+    memmove(lines + start_row + inserted_count, 
+            lines + start_row + actual_deleted, 
+            remaining_lines * sizeof(Line));
+  }
+
+  //new lines
+  for (int i = 0; i < inserted_count; i++) {
+    lines[start_row + i] = (Line){NULL, 0, 0};
+  }
+
+  row_count += shift_offset;
+    
+  //smal detail for cursor
+  if (cursor_row >= start_row + actual_deleted) cursor_row += shift_offset;
+    
+  clamp_scroll();
+  return EDITOR_OK;
+}
+
+EditorResult editor_remote_update_line(int row, const char *text, int len) {
+  if (row < 0 || row >= row_count) return EDITOR_OK;
+    
+  if (line_ensure_cap(&lines[row], len) != 0) return EDITOR_ERR_ALLOC_FAILED;
+  memcpy(lines[row].buf, text, len);
+  lines[row].buf[len] = '\0';
+  lines[row].len = len;
+    
+  clamp_scroll();
+  return EDITOR_OK;
+}
+
+
 int editor_get_remote_cursor_row(){ return remote_cursor_row;}
 int editor_get_remote_cursor_col(){ return remote_cursor_col;}
 
