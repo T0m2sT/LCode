@@ -86,7 +86,7 @@ static void send_packet(uint8_t* buf, int len){
   }
 }
 
-void build_packet(SerialCommand cmd, uint8_t* payload, int len, uint16_t num_lines) {
+void build_packet_serial(SerialCommand cmd, uint8_t* payload, int len, uint16_t num_lines) {
   switch(cmd) {
     case CMD_INSERT_CHAR: {
       uint8_t buf[4];
@@ -111,6 +111,28 @@ void build_packet(SerialCommand cmd, uint8_t* payload, int len, uint16_t num_lin
         buf[i+3] = payload[i];
       }
       send_packet(buf, 7);
+      break;
+    }
+    case CMD_REPLACE_BLOCK:{
+      uint8_t buf[9];
+      buf[1] = CMD_REPLACE_BLOCK;
+      buf[2] = 0x06;
+      for (int i=0; i<6;i++){
+        buf[i+3]=payload[i];
+      }
+      send_packet(buf,9);
+      break;
+    }
+    case CMD_UPDATE_LINE:{
+      uint8_t buf[5+len];
+      buf[1] = CMD_UPDATE_LINE;
+      buf[2] = len+2;
+      buf[3] = (num_lines >> 8) & 0xFF; 
+      buf[4] = num_lines & 0xFF;  
+      for (int i=0; i<len; i++) {
+        buf[i+5] = payload[i];
+      }
+      send_packet(buf,5+len);
       break;
     }
     case CMD_FILE_START: {
