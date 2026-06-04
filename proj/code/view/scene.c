@@ -38,7 +38,7 @@ static int  model_to_px(int model_col);
 static int  model_to_py(int model_row);
 
 // --- Draw Primitives ---
-static void draw_cell(int model_col, int model_row, bool in_block_comment);
+static void draw_cell(int model_col, int model_row);
 static void draw_cursor(int model_col, int model_row);
 static void draw_line_colored(int x, int y, const char *line, int scroll_col, const uint32_t *colors, int line_len);
 
@@ -57,14 +57,15 @@ static void flip_status_bar(void);
 static void flip_cursor_region(int x, int y);
 
 // --- Memory & Cache Management ---
-static int  colors_buf_grow(int needed);
+static int colors_buf_grow(int needed);
 static void colors_buf_cleanup(void);
-static int  block_comment_open_grow(int needed);
+static int block_comment_open_grow(int needed);
 static void block_comment_open_cleanup(void);
-static int  line_colors_cache_grow(int needed);
+static int line_colors_cache_grow(int needed);
 static void line_colors_cache_free_row(int row);
 static void line_colors_cache_invalidate_all(void);
 static void line_colors_cache_cleanup(void);
+static const uint32_t *get_line_colors(int row);
 
 // --- Syntax State Tracking ---
 static void rebuild_block_comment_open_full(void);
@@ -115,6 +116,7 @@ int scene_get_vis_rows() { return vis_rows; }
 
 void scene_set_language(SyntaxLanguage lang) {
   current_lang = lang;
+  line_colors_cache_invalidate_all();
   rebuild_block_comment_open_full();
 }
 
@@ -133,17 +135,14 @@ static int model_to_py(int model_row) {
 
 // Draw primitives
 
-static void draw_cell(int model_col, int model_row, bool in_block_comment) {
+static void draw_cell(int model_col, int model_row) {
   int x = model_to_px(model_col);
   int y = model_to_py(model_row);
   bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_BG);
-  const char *line = editor_get_line(model_row);
   int len = editor_get_line_len(model_row);
   if (model_col < len) {
-    if (colors_buf_grow(len) != 0) return;
-    bool out_bc;
-    syntax_highlight_line(line, len, in_block_comment, current_lang, colors_buf, &out_bc);
-    draw_char(x, y, line[model_col], colors_buf[model_col]);
+    const uint32_t *colors = get_line_colors(model_row);
+    if (colors) draw_char(x, y, editor_get_line(model_row)[model_col], colors[model_col]);
   }
 }
 
@@ -283,13 +282,11 @@ static void draw_line_colored(int x, int y, const char *line, int scroll_col,
 static void draw_text_lines(int scroll_row, int end_r, int scroll_col) {
   for (int r = scroll_row; r < end_r; r++) {
     int y = EDITOR_Y + (r - scroll_row) * FONT_H;
-    const char *line = editor_get_line(r);
     int len = editor_get_line_len(r);
     if (len <= scroll_col) continue;
-    if (colors_buf_grow(len) != 0) continue;
-    bool out_bc;
-    syntax_highlight_line(line, len, block_comment_open_at(r), current_lang, colors_buf, &out_bc);
-    draw_line_colored(editor_x, y, line, scroll_col, colors_buf, len);
+    const uint32_t *colors = get_line_colors(r);
+    if (!colors) continue;
+    draw_line_colored(editor_x, y, editor_get_line(r), scroll_col, colors, len);
   }
 }
 
@@ -324,6 +321,7 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
       break;
 
     case RENDER_LINE: {
+      line_colors_cache_free_row(row);
       rebuild_block_comment_open_from(row);
       int y = EDITOR_Y + (row - scroll_row) * FONT_H;
       int line_w = h_res - editor_x - SCROLLBAR_W;
@@ -332,12 +330,10 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
       bb_draw_rect(editor_x, y, line_w, FONT_H, COLOR_BG);
 
       //redraw new line
-      const char *line = editor_get_line(row);
       int len = editor_get_line_len(row);
-      if (len > scroll_col && colors_buf_grow(len) == 0) {
-        bool out_bc;
-        syntax_highlight_line(line, len, block_comment_open_at(row), current_lang, colors_buf, &out_bc);
-        draw_line_colored(editor_x, y, line, scroll_col, colors_buf, len);
+      if (len > scroll_col) {
+        const uint32_t *colors = get_line_colors(row);
+        if (colors) draw_line_colored(editor_x, y, editor_get_line(row), scroll_col, colors, len);
       }
       draw_cursor(col, row);
       break;
@@ -345,8 +341,7 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
 
     case RENDER_WORD: {
       rebuild_block_comment_open_from(prev_row);
-      bool in_block_comment = block_comment_open_at(prev_row);
-      for (int c = col; c <= prev_col; c++) draw_cell(c, prev_row, in_block_comment);
+      for (int c = col; c <= prev_col; c++) draw_cell(c, prev_row);
       draw_cursor(col, row);
       break;
     }
@@ -358,7 +353,7 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
                        col >= scroll_col && col < scroll_col + vis_cols);
       if (prev_vis) {
         rebuild_block_comment_open_from(prev_row);
-        draw_cell(prev_col, prev_row, block_comment_open_at(prev_row));
+        draw_cell(prev_col, prev_row);
       }
       if (curr_vis) draw_cursor(col, row);
       break;
@@ -586,6 +581,31 @@ static void line_colors_cache_cleanup(void) {
   free(line_colors_cache_cap);
   line_colors_cache_cap = NULL;
   line_colors_cache_count = 0;
+}
+
+static const uint32_t *get_line_colors(int row) {
+  //ensure outer pointer array covers this row
+  if (line_colors_cache_grow(row + 1) != 0) return NULL;
+
+  //check colors already computed for this row
+  if (line_colors_cache[row]) return line_colors_cache[row];
+
+  int len = editor_get_line_len(row);
+  if (len == 0) return NULL;
+
+  //grow inner buffer if line is longer than allocated
+  if (line_colors_cache_cap[row] < len) {
+    uint32_t *p = malloc(len * sizeof(uint32_t));
+    if (!p) return NULL;
+    free(line_colors_cache[row]);
+    line_colors_cache[row] = p;
+    line_colors_cache_cap[row] = len;
+  }
+
+  //tokenize line and store result; out_bc is discarded (block_comment_open[] tracks state)
+  bool out_bc;
+  syntax_highlight_line(editor_get_line(row), len, block_comment_open_at(row), current_lang, line_colors_cache[row], &out_bc);
+  return line_colors_cache[row];
 }
 
 static void rebuild_block_comment_open_full(void) {
