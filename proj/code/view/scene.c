@@ -116,8 +116,6 @@ void scene_set_language(SyntaxLanguage lang) {
 }
 
 
-
-
 // Coordinate mapping
 
 static int model_to_px(int model_col) {
@@ -131,9 +129,20 @@ static int model_to_py(int model_row) {
 // Draw primitives
 
 static void draw_cursor(int model_col, int model_row) {
+  if (filetree_is_focused()) return;
+
   int x = model_to_px(model_col);
   int y = model_to_py(model_row);
   bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_TEXT);
+}
+
+static void draw_remote_cursor(int model_col, int model_row) {
+
+  if (model_row < 0 || model_col < 0) return; //if remote does not began to send cursor position
+  int x = model_to_px(model_col);
+  int y = model_to_py(model_row);
+  
+  bb_draw_rect(x, y, FONT_W, FONT_H, 0xFF0000);//draw in red color
 }
 
 // Widget draws
@@ -292,6 +301,7 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
       if (editor_sel_is_active()){draw_selection_bg(end_r);}
       draw_text_lines(scroll_row, end_r, scroll_col);
       draw_cursor(col, row);
+      draw_remote_cursor(editor_get_remote_cursor_col(), editor_get_remote_cursor_row());
       draw_scrollbar();
       render_status_bar();
       break;
@@ -311,6 +321,22 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
         if (colors) draw_line_colored(layout.editor.x, y, editor_get_line(row), scroll_col, colors, len);
       }
       draw_cursor(col, row);
+      break;
+    }
+
+    case RENDER_REMOTE_LINE:{
+      int r_row = editor_get_remote_cursor_row();
+      int r_col = editor_get_remote_cursor_col();
+      int y = EDITOR_Y + (r_row - scroll_row) * FONT_H;
+
+      //reset line
+      bb_draw_rect(layout.editor.x, y, layout.editor.w, FONT_H, COLOR_BG);
+
+      //redraw new line
+      const char *line = editor_get_line(r_row);
+      if ((int)strlen(line) > scroll_col) draw_string(layout.editor.x, y, line + scroll_col, COLOR_TEXT);
+
+      draw_remote_cursor(r_col, r_row);
       break;
     }
 
@@ -370,6 +396,12 @@ static void flip_editor_ui(int mode, int col, int row, int scroll_row, int scrol
       vg_flip_region(layout.editor.x, EDITOR_Y + (row - scroll_row) * FONT_H,
                      layout.editor.w, FONT_H);
       break;
+    case RENDER_REMOTE_LINE:{
+      int r_row = editor_get_remote_cursor_row();
+      vg_flip_region(layout.editor.x, EDITOR_Y + (r_row - scroll_row) * FONT_H,
+                     layout.editor.w, FONT_H);
+      break;
+    }  
     case RENDER_CHAR: {
       bool prev_vis = (prev_row >= scroll_row && prev_row < scroll_row + vis_rows &&
                        prev_col >= scroll_col && prev_col < scroll_col + vis_cols);
@@ -463,5 +495,20 @@ bool scene_click_scrollbar(int px, int py) {
   
   editor_scroll_by(target - editor_get_scroll_row(), 0);
   if (editor_consume_scroll_dirty()) set_render(RENDER_FULL);
+  return true;
+}
+
+bool scene_px_to_filetree(int px, int py, int *out_index) {
+  if (!filetree_is_visible()) return false;
+  if (px < 0 || px >= layout.filetree.w) return false;
+  if (py < EDITOR_Y) return false;
+
+  int index = filetree_get_scroll() + (py - EDITOR_Y) / FONT_H;
+  if (index >= filetree_get_count()) {
+    *out_index = -1;
+    return true;
+  }
+
+  *out_index = index;
   return true;
 }

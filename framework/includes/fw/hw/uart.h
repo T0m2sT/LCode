@@ -23,16 +23,16 @@
 #define DLL   0 // Divisor Latch LSB 
 #define DLM   1 // Divisor Latch MSB 
 
-// Máscaras do IER (Interrupt Enable Register)
+// IER (Interrupt Enable Register)
 #define IER_DATA_AVAILABLE  BIT(0) // Interrupção por dados recebidos
 #define IER_THR_EMPTY       BIT(1) // Interrupção por THR vazio
 #define IER_LCR_ERROR       BIT(2) // Interrupção por erro na linha de receção
 
-// Máscaras do IIR (Interrupt Identification Register)
+// IIR (Interrupt Identification Register)
 #define IIR_NO_INT          BIT(0) // Sem interrupção pendente
 #define IIR_INT_ID_MASK     0x0E   // Máscara para identificar o tipo de interrupção
 
-// Máscaras do FCR (FIFO Control Register)
+// FCR (FIFO Control Register)
 #define FCR_ENABLE_FIFOS      BIT(0) // Habilitar FIFOs
 #define FCR_CLEAR_RX_FIFO     BIT(1) // Limpar FIFO de receção
 #define FCR_CLEAR_TX_FIFO     BIT(2) // Limpar FIFO de transmissão
@@ -41,14 +41,14 @@
 #define FCR_TRIGGER_8_BYTES   0x80   // Trigger a 8 bytes
 #define FCR_TRIGGER_14_BYTES  0xC0   // Trigger a 14 bytes
 
-// Máscaras do LCR (Line Control Register)
+// LCR (Line Control Register)
 #define LCR_DATA_8_BITS   0x03   // Tamahno dos dados (bits 0 e 1)
 #define LCR_STOP_BIT      BIT(2) // Stop bit (1 ou 2 bits)
 #define LCR_PARITY_BIT    BIT(3) // Paridade 
 #define LCR_BREAK_BIT     BIT(6) // Break control
 #define LCR_DLAB_BIT      BIT(7) // Divisor Latch Access Bit
 
-// Máscaras do LSR (Line Status Register)
+// LSR (Line Status Register)
 #define LSR_RX_READY    BIT(0) // Há dados prontos para serem lidos (receiver ready)
 #define LSR_OVERRUN_ERR BIT(1) // Buffer de receção cheio (overrun error) 
 #define LSR_PARITY_ERR  BIT(2) // Bit de paridade errado (parity error)

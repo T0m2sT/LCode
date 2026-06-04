@@ -56,3 +56,12 @@ EditorResult editor_paste();
 
 EditorResult editor_load_line(const char *text, int len);
 void editor_load_finalize();
+
+// Remote 
+
+void editor_set_remote_cursor(int row, int col);
+EditorResult editor_remote_insert_char(char c);
+EditorResult editor_remote_delete_char();
+int editor_get_remote_cursor_row();
+int editor_get_remote_cursor_col();
+

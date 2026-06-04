@@ -21,22 +21,21 @@ void(serial_ih)() {
 
   if ((iir_val & IIR_NO_INT) == 0) {
 
-    // Isolar a origem da interrupção (Bits 1, 2 e 3)
-    uint8_t int_origin = iir_val & (BIT(1) | BIT(2) | BIT(3));
+    uint8_t int_origin = iir_val & IIR_INT_ID_MASK;
 
-    // Se for Receção de Dados (010) ou FIFO Timeout (110) 
+    // Data Ready (010) or FIFO Time-out (110) 
     if (int_origin == BIT(1) || int_origin == (BIT(1) | BIT(2))) {
 
-      // Drenar a FIFO de hardware para a nossa Queue de software
       if (util_sys_inb(COM1_BASE + LSR, &lsr_val) != OK) return;
 
+      // Hardware FIFO -> Software FIFO
       while ((lsr_val & LSR_RX_READY) && !queue_is_full(&rx_queue)) { 
 
         if ((lsr_val & (LSR_OVERRUN_ERR | LSR_PARITY_ERR | LSR_FRAME_ERR)) == 0) {
 
           util_sys_inb(COM1_BASE + RBR, &data);
 
-          // Colocar na nossa queue de software
+          // put the data into software FIFO
           queue_push(&rx_queue, data);
         } else {
           

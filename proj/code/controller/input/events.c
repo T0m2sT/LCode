@@ -48,6 +48,8 @@ void input_dispatch() {
       case INPUT_EVENT_MOUSE:
         commands_dispatch_mouse(ev.data.mouse);
         break;
+      case INPUT_EVENT_SERIAL:
+        commands_dispatch_serial(ev.data.serial);
       default:
         break;
     }
