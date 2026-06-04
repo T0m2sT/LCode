@@ -100,6 +100,28 @@ void filetree_move_down(int vis_rows) {
   if (cursor >= scroll + vis_rows) scroll = cursor - vis_rows + 1;
 }
 
+void filetree_set_cursor(int idx, int vis_rows) {
+  if (entry_count == 0) {
+    cursor = 0;
+    scroll = 0;
+    return;
+  }
+
+  if (idx < 0)
+    idx = 0;
+
+  if (idx >= entry_count)
+    idx = entry_count - 1;
+
+  cursor = idx;
+
+  if (cursor < scroll)
+    scroll = cursor;
+
+  if (cursor >= scroll + vis_rows)
+    scroll = cursor - vis_rows + 1;
+}
+
 FiletreeResult filetree_go_parent() {
   if (strcmp(cwd, "/") == 0) return FILETREE_OK;
 
