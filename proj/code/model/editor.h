@@ -4,11 +4,14 @@
 typedef enum {
   EDITOR_OK,
   EDITOR_ERR_NO_CLIPBOARD,
-  EDITOR_ERR_DOCUMENT_FULL
+  EDITOR_ERR_ALLOC_FAILED
 } EditorResult;
 
-#define MAX_LINES 500
-#define MAX_COLS 256
+typedef struct {
+  char *buf;
+  int len;
+  int cap;
+} Line;
 
 int editor_init();
 void editor_cleanup();
@@ -18,9 +21,9 @@ void editor_scroll_by(int drow, int dcol);
 void editor_set_cursor(int row, int col);
 bool editor_consume_scroll_dirty();
 
-void editor_insert_char(char c);
-void editor_delete_char();
-void editor_delete_word();
+EditorResult editor_insert_char(char c);
+EditorResult editor_delete_char();
+EditorResult editor_delete_word();
 
 void editor_move_left();
 void editor_move_right();
@@ -40,7 +43,7 @@ int editor_get_cursor_col();
 int editor_get_scroll_row();
 int editor_get_scroll_col();
 
-void editor_delete_selection();
+EditorResult editor_delete_selection();
 void editor_sel_set_anchor();
 void editor_sel_clear();
 bool editor_sel_is_active();
@@ -49,3 +52,6 @@ bool editor_consume_sel_dirty();
 
 void editor_copy_selection();
 EditorResult editor_paste();
+
+EditorResult editor_load_line(const char *text, int len);
+void editor_load_finalize();
