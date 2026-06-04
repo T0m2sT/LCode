@@ -276,16 +276,17 @@ void commands_dispatch(KeyEvent ev) {
 }
 
 void commands_dispatch_mouse(MouseEvent me) {
-  if (me.scroll != 0) {
-    editor_scroll_by(me.scroll*SCROLL_SPEED_MULTIPLIER, 0);
-    set_render(RENDER_FULL);
-  }
-
-  if (!me.left_clicked) return;
+  if (!me.left_clicked && me.scroll == 0) return;
 
   if (scene_click_scrollbar(me.click_x, me.click_y)) return;
   
   if (filetree_commands_mouse(me)) return;
+
+  if (me.scroll != 0) {
+    editor_scroll_by(me.scroll * SCROLL_SPEED_MULTIPLIER, 0);
+    set_render(RENDER_FULL);
+    return;
+  }
 
   int row, col;
   if (scene_px_to_text(me.click_x, me.click_y, &row, &col)) {

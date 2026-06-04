@@ -75,6 +75,13 @@ bool filetree_commands_mouse(MouseEvent me) {
   int idx;
   filetree_set_focused(false);
 
+  if (me.scroll != 0 && scene_px_to_filetree(me.click_x, me.click_y, &idx)) {
+    filetree_scroll_by(me.scroll, scene_get_vis_rows());
+    filetree_set_focused(true);
+    set_render(RENDER_FULL);
+    return true;
+  }
+
   if (scene_px_to_filetree(me.click_x, me.click_y, &idx)) {
     
     filetree_set_focused(true);

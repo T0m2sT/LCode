@@ -169,3 +169,15 @@ void filetree_get_selected_path(char *buf, int size) {
   }
   snprintf(buf, size, "%s/%s", cwd, entries[cursor].name);
 }
+
+void filetree_scroll_by(int delta, int vis_rows) {
+  scroll += delta;
+
+  if (scroll < 0) scroll = 0;
+
+  int max_scroll = entry_count - vis_rows;
+  if (max_scroll < 0) max_scroll = 0;
+
+  if (scroll > max_scroll)
+    scroll = max_scroll;
+}
