@@ -27,7 +27,7 @@
 #define FILETREE_COLS 20
 #define FILETREE_W_PX (FILETREE_COLS * FONT_W)
 #define EDITOR_Y 10
-#define GUTTER_DIGITS 3
+#define GUTTER_DIGITS_MIN 3
 #define GUTTER_PAD 2
 #define SCROLLBAR_W 8
 #define SCROLLBAR_HANDLE_MIN 4
@@ -81,6 +81,11 @@ static void scene_update_layout(void) {
   int v_res = (int)vg_get_v_res();
   int fw = filetree_is_visible() ? FILETREE_W_PX : 0;
 
+  int digits = 1;
+  for (int n = editor_get_row_count(); n >= 10; n /= 10) digits++;
+  if (digits < GUTTER_DIGITS_MIN) digits = GUTTER_DIGITS_MIN;
+  gutter_w = FONT_W * (digits + GUTTER_PAD);
+
   layout.status_bar = (Rect){0, v_res - FONT_H, h_res, FONT_H};
   layout.filetree   = (Rect){0, 0, fw, v_res};
   layout.gutter     = (Rect){fw, EDITOR_Y, gutter_w, v_res - EDITOR_Y - FONT_H};
@@ -92,7 +97,6 @@ static void scene_update_layout(void) {
 
 int scene_init(SceneID id) {
   current_scene = id;
-  gutter_w = FONT_W * (GUTTER_DIGITS + GUTTER_PAD);
   scene_update_layout();
   editor_set_viewport(vis_rows, vis_cols);
   if (mouse_cursor_init() != 0) return 1;
@@ -210,13 +214,14 @@ static void draw_filetree(int vrows) {
 
 static void draw_gutter(int scroll_row, int end_r) {
   bb_draw_rect(layout.gutter.x, layout.gutter.y, layout.gutter.w, layout.gutter.h, COLOR_GUTTER_BG);
-  char buf[GUTTER_DIGITS + 1];
-  buf[GUTTER_DIGITS] = '\0';
+  int digits = layout.gutter.w / FONT_W - GUTTER_PAD;
+  char buf[9];
+  buf[digits] = '\0';
   for (int r = scroll_row; r < end_r; r++) {
     int y = EDITOR_Y + (r - scroll_row) * FONT_H;
     /* Format line number right-to-left, then skip leading zeros. */
     int n = r + 1;
-    for (int i = GUTTER_DIGITS - 1; i >= 0; i--) { buf[i] = '0' + n % 10; n /= 10; }
+    for (int i = digits - 1; i >= 0; i--) { buf[i] = '0' + n % 10; n /= 10; }
     const char *p = buf;
     while (*p == '0' && *(p + 1)) p++;
     int x = layout.gutter.x + layout.gutter.w - GUTTER_PAD - (int)strlen(p) * FONT_W;
