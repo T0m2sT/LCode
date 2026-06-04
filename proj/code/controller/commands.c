@@ -276,6 +276,11 @@ void commands_dispatch(KeyEvent ev) {
 }
 
 void commands_dispatch_mouse(MouseEvent me) {
+  if (me.scroll != 0) {
+    editor_scroll_by(me.scroll*SCROLL_SPEED_MULTIPLIER, 0);
+    set_render(RENDER_FULL);
+  }
+
   if (!me.left_clicked) return;
 
   if (scene_click_scrollbar(me.click_x, me.click_y)) return;
@@ -288,6 +293,7 @@ void commands_dispatch_mouse(MouseEvent me) {
     editor_set_cursor(row, col);
     set_render_ex(RENDER_CHAR);
   }
+
 }
 
 void commands_dispatch_serial(SerialEvent se) {

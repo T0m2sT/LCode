@@ -27,10 +27,27 @@ void mouse_process(mouse_packet pp) {
   if (moved) set_render(RENDER_MOUSE);
 
   if (pp.lb && !prev_lb) {
-    MouseEvent me = {.left_clicked = true, .click_x = mouse_x, .click_y = mouse_y};
-    InputEvent iev = {.type = INPUT_EVENT_MOUSE, .data.mouse = me};
+    MouseEvent me = { .left_clicked = true, .click_x = mouse_x, .click_y = mouse_y, .scroll = pp.delta_z};
+
+    InputEvent iev = {
+      .type = INPUT_EVENT_MOUSE,
+      .data.mouse = me
+    };
+
     input_event_push(iev);
   }
+
+  if (pp.delta_z != 0) {
+    MouseEvent me = { .left_clicked = false, .click_x = mouse_x, .click_y = mouse_y, .scroll = pp.delta_z };
+
+    InputEvent iev = {
+      .type = INPUT_EVENT_MOUSE,
+      .data.mouse = me
+    };
+
+    input_event_push(iev);
+  }
+
   prev_lb = pp.lb;
 }
 
