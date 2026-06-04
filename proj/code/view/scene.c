@@ -90,8 +90,6 @@ void scene_set_language(SyntaxLanguage lang) {
 }
 
 
-
-
 // Coordinate mapping
 
 static int model_to_px(int model_col) {
@@ -119,6 +117,8 @@ static void draw_cell(int model_col, int model_row, bool in_block_comment) {
 }
 
 static void draw_cursor(int model_col, int model_row) {
+  if (filetree_is_focused()) return;
+
   int x = model_to_px(model_col);
   int y = model_to_py(model_row);
   bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_TEXT);
@@ -487,6 +487,30 @@ bool scene_click_scrollbar(int px, int py) {
   
   editor_scroll_by(target - editor_get_scroll_row(), 0);
   if (editor_consume_scroll_dirty()) set_render(RENDER_FULL);
+  return true;
+}
+
+bool scene_px_to_filetree(int px, int py, int *out_index)
+{
+  if (!filetree_is_visible())
+    return false;
+
+  if (px < 0 || px >= filetree_w)
+    return false;
+
+  if (py < EDITOR_Y)
+    return false;
+
+  int row = (py - EDITOR_Y) / FONT_H;
+
+  int index = filetree_get_scroll() + row;
+
+  if (index >= filetree_get_count()) {
+    *out_index = -1;
+    return true;
+  }
+
+  *out_index = index;
   return true;
 }
 

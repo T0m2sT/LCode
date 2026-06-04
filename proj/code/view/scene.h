@@ -14,6 +14,7 @@ void view_render();
 
 bool scene_px_to_text(int px, int py, int *out_row, int *out_col);
 bool scene_click_scrollbar(int px, int py);
+bool scene_px_to_filetree(int px, int py, int *out_index);
 
 #include "view/syntax.h"
 
