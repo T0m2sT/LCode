@@ -4,10 +4,12 @@
 
 #include "controller/input/keyboard.h"
 #include "controller/input/mouse.h"
+#include "controller/serial.h"
 
 typedef enum {
   INPUT_EVENT_KEY,
-  INPUT_EVENT_MOUSE
+  INPUT_EVENT_MOUSE,
+  INPUT_EVENT_SERIAL
 } InputEventType;
 
 typedef struct {
@@ -15,6 +17,7 @@ typedef struct {
   union {
     KeyEvent key;
     MouseEvent mouse;
+    SerialEvent serial;
   } data;
 } InputEvent;
 

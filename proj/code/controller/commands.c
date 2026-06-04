@@ -5,6 +5,7 @@
 #include "view/scene.h"
 #include "view/syntax.h"
 #include "render_flag.h"
+#include "controller/serial.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -283,3 +284,59 @@ void commands_dispatch_mouse(MouseEvent me) {
     set_render_ex(RENDER_CHAR);
   }
 }
+
+void commands_dispatch_serial(SerialEvent se) {
+  if (se.payload_len == 0 && se.cmd != CMD_DELETE_CHAR) return;
+  EditorResult r;
+  switch (se.cmd) {
+    case CMD_INSERT_CHAR:
+      r = editor_remote_insert_char(se.payload_buf[0]);
+      if (r == EDITOR_ERR_ALLOC_FAILED) {
+        command_bar_set_status("Out of memory");
+        set_render(RENDER_STATUS);
+      }
+      set_render_ex(RENDER_REMOTE_LINE);
+      break;
+      
+    case CMD_DELETE_CHAR:{
+      bool mid_line = (editor_get_remote_cursor_col() > 0);
+      r = editor_remote_delete_char();
+      if (r == EDITOR_ERR_ALLOC_FAILED) {
+        command_bar_set_status("Out of memory");
+        set_render(RENDER_STATUS);
+      }
+      else set_render_ex(mid_line ? RENDER_REMOTE_LINE : RENDER_FULL);
+      break;
+    }  
+    case CMD_MOVE_CURSOR:{
+      uint8_t row_msb = se.payload_buf [0];
+      uint8_t row_lsb = se.payload_buf [1];
+      uint8_t col_msb = se.payload_buf [2];
+      uint8_t col_lsb = se.payload_buf [3];
+      
+      int remote_cursor_row = row_msb << 8 | row_lsb;
+      int remote_cursor_col = col_msb << 8 | col_lsb;
+
+      if (editor_get_remote_cursor_row()!=remote_cursor_row){
+        editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
+        set_render_ex(RENDER_FULL);
+      }
+      else{
+        editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
+        set_render_ex(RENDER_REMOTE_LINE);
+      }
+      break;
+    }
+    case CMD_FILE_START:
+      // TODO
+      break;
+
+    case CMD_FILE_LINE:
+      // TODO
+      break;
+
+    default:
+      break;
+  }
+}
+

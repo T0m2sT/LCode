@@ -124,6 +124,15 @@ static void draw_cursor(int model_col, int model_row) {
   bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_TEXT);
 }
 
+static void draw_remote_cursor(int model_col, int model_row) {
+
+  if (model_row < 0 || model_col < 0) return; //if remote does not began to send cursor position
+  int x = model_to_px(model_col);
+  int y = model_to_py(model_row);
+  
+  bb_draw_rect(x, y, FONT_W, FONT_H, 0xFF0000);//draw in red color
+}
+
 // Widget draws
 
 static void draw_selection_bg(int end_r) {
@@ -290,6 +299,7 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
       if (editor_sel_is_active()){draw_selection_bg(end_r);}
       draw_text_lines(scroll_row, end_r, scroll_col);
       draw_cursor(col, row);
+      draw_remote_cursor(editor_get_remote_cursor_col(), editor_get_remote_cursor_row());
       draw_scrollbar();
       render_status_bar();
       break;
@@ -311,6 +321,24 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
         draw_line_colored(editor_x, y, line, scroll_col, colors_buf, len);
       }
       draw_cursor(col, row);
+      break;
+    }
+
+    case RENDER_REMOTE_LINE:{
+      int r_row = editor_get_remote_cursor_row();
+      int r_col = editor_get_remote_cursor_col();
+      
+      int y = EDITOR_Y + (r_row - scroll_row) * FONT_H;
+      int line_w = h_res - editor_x - SCROLLBAR_W;
+      
+      //reset line
+      bb_draw_rect(editor_x, y, line_w, FONT_H, COLOR_BG);
+      
+      //redraw new line
+      const char *line = editor_get_line(r_row);
+      if ((int)strlen(line) > scroll_col) draw_string(editor_x, y, line + scroll_col, COLOR_TEXT);
+      
+      draw_remote_cursor(r_col, r_row);
       break;
     }
 
@@ -354,6 +382,12 @@ static void flip_editor_ui(int mode, int col, int row, int scroll_row, int scrol
       vg_flip_region(editor_x, EDITOR_Y + (row - scroll_row) * FONT_H,
                      h_res - editor_x - SCROLLBAR_W, FONT_H);
       break;
+    case RENDER_REMOTE_LINE:{
+      int row = editor_get_remote_cursor_row();
+      vg_flip_region(editor_x, EDITOR_Y + (row - scroll_row) * FONT_H,
+                     h_res - editor_x - SCROLLBAR_W, FONT_H);
+      break;
+    }  
     case RENDER_CHAR: {
       bool prev_vis = (prev_row >= scroll_row && prev_row < scroll_row + vis_rows &&
                        prev_col >= scroll_col && prev_col < scroll_col + vis_cols);
