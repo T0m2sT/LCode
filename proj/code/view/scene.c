@@ -38,7 +38,6 @@ static int  model_to_px(int model_col);
 static int  model_to_py(int model_row);
 
 // --- Draw Primitives ---
-static void draw_cell(int model_col, int model_row);
 static void draw_cursor(int model_col, int model_row);
 static void draw_line_colored(int x, int y, const char *line, int scroll_col, const uint32_t *colors, int line_len);
 
@@ -134,17 +133,6 @@ static int model_to_py(int model_row) {
 }
 
 // Draw primitives
-
-static void draw_cell(int model_col, int model_row) {
-  int x = model_to_px(model_col);
-  int y = model_to_py(model_row);
-  bb_draw_rect(x, y, FONT_W, FONT_H, COLOR_BG);
-  int len = editor_get_line_len(model_row);
-  if (model_col < len) {
-    const uint32_t *colors = get_line_colors(model_row);
-    if (colors) draw_char(x, y, editor_get_line(model_row)[model_col], colors[model_col]);
-  }
-}
 
 static void draw_cursor(int model_col, int model_row) {
   int x = model_to_px(model_col);
@@ -341,7 +329,19 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
 
     case RENDER_WORD: {
       rebuild_block_comment_open_from(prev_row);
-      for (int c = col; c <= prev_col; c++) draw_cell(c, prev_row);
+      const char *line = editor_get_line(prev_row);
+      int len = editor_get_line_len(prev_row);
+      int wy = model_to_py(prev_row);
+
+      //clear range
+      bb_draw_rect(model_to_px(col), wy, (prev_col - col + 1) * FONT_W, FONT_H, COLOR_BG);
+
+      //tokenize once, then draw all chars in range
+      const uint32_t *colors = get_line_colors(prev_row);
+      if (colors) {
+        for (int c = col; c <= prev_col && c < len; c++)
+          draw_char(model_to_px(c), wy, line[c], colors[c]);
+      }
       draw_cursor(col, row);
       break;
     }
@@ -353,7 +353,14 @@ static void render_editor_ui(int mode, int col, int row, int scroll_row, int scr
                        col >= scroll_col && col < scroll_col + vis_cols);
       if (prev_vis) {
         rebuild_block_comment_open_from(prev_row);
-        draw_cell(prev_col, prev_row);
+        int cx = model_to_px(prev_col);
+        int cy = model_to_py(prev_row);
+        bb_draw_rect(cx, cy, FONT_W, FONT_H, COLOR_BG);
+        int len = editor_get_line_len(prev_row);
+        if (prev_col < len) {
+          const uint32_t *colors = get_line_colors(prev_row);
+          if (colors) draw_char(cx, cy, editor_get_line(prev_row)[prev_col], colors[prev_col]);
+        }
       }
       if (curr_vis) draw_cursor(col, row);
       break;
