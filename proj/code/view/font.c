@@ -136,11 +136,21 @@ static const uint8_t font_8x16[128][16] = {
 void draw_char(int x, int y, char c, uint32_t color) {
   if ((uint8_t)c >= 128) return;
   const uint8_t *glyph = font_8x16[(uint8_t)c];
+
+  unsigned h_res = vg_get_h_res();
   for (int row = 0; row < FONT_H; row++) {
+    int py = y + row;
+    if (py < 0) continue;
+
+    uint32_t *line = bb_row_ptr((uint16_t)py);
+    if (!line) break;
+
     uint8_t bits = glyph[row];
+    
     for (int col = 0; col < FONT_W; col++) {
-      if (bits & (0x80 >> col))
-        bb_draw_pixel((uint16_t)(x + col), (uint16_t)(y + row), color);
+      int px = x + col;
+      if (px < 0 || (unsigned)px >= h_res) continue;
+      if (bits & (0x80 >> col)) line[px] = color;
     }
   }
 }

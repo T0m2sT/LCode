@@ -187,6 +187,11 @@ uint32_t bb_get_pixel(uint16_t x, uint16_t y) {
   return ((uint32_t *)back_buffer)[y * h_res + x];
 }
 
+uint32_t *bb_row_ptr(uint16_t y) {
+  if (y >= v_res) return NULL;
+  return (uint32_t *)back_buffer + y * h_res;
+}
+
 void bb_draw_hline(uint16_t x, uint16_t y, uint16_t len, uint32_t color) {
   if (y >= v_res || x >= h_res) return;
   if (x + len > h_res) len = h_res - x;

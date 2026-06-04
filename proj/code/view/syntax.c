@@ -76,7 +76,8 @@ void syntax_highlight_line(const char *line, int len,
                            uint32_t *colors,
                            bool *out_block_comment) {
   if (lang != SYNTAX_LANG_C) {
-    for (int i = 0; i < len; i++) colors[i] = SYNTAX_COLOR_DEFAULT;
+    if (colors)
+      for (int i = 0; i < len; i++) colors[i] = SYNTAX_COLOR_DEFAULT;
     *out_block_comment = in_block_comment;
     return;
   }
@@ -93,9 +94,9 @@ void syntax_highlight_line(const char *line, int len,
   while (i < len) {
     /* Inside block comment */
     if (block_comment) {
-      colors[i] = SYNTAX_COLOR_COMMENT;
+      if (colors) colors[i] = SYNTAX_COLOR_COMMENT;
       if (line[i] == '*' && i + 1 < len && line[i + 1] == '/') {
-        colors[i + 1] = SYNTAX_COLOR_COMMENT;
+        if (colors) colors[i + 1] = SYNTAX_COLOR_COMMENT;
         i += 2;
         block_comment = false;
       } else {
@@ -106,14 +107,14 @@ void syntax_highlight_line(const char *line, int len,
 
     /* Line comment */
     if (line[i] == '/' && i + 1 < len && line[i + 1] == '/') {
-      while (i < len) colors[i++] = SYNTAX_COLOR_COMMENT;
+      if (colors)
+        while (i < len) colors[i++] = SYNTAX_COLOR_COMMENT;
       break;
     }
 
     /* Block comment open */
     if (line[i] == '/' && i + 1 < len && line[i + 1] == '*') {
-      colors[i] = SYNTAX_COLOR_COMMENT;
-      colors[i + 1] = SYNTAX_COLOR_COMMENT;
+      if (colors) { colors[i] = SYNTAX_COLOR_COMMENT; colors[i + 1] = SYNTAX_COLOR_COMMENT; }
       i += 2;
       block_comment = true;
       continue;
@@ -121,17 +122,19 @@ void syntax_highlight_line(const char *line, int len,
 
     /* String literal — escape sequences highlighted differently */
     if (line[i] == '"') {
-      colors[i++] = SYNTAX_COLOR_STRING;
+      if (colors) colors[i] = SYNTAX_COLOR_STRING;
+      i++;
       while (i < len) {
         if (line[i] == '\\' && i + 1 < len) {
-          colors[i]     = SYNTAX_COLOR_ESCAPE;
-          colors[i + 1] = SYNTAX_COLOR_ESCAPE;
+          if (colors) { colors[i] = SYNTAX_COLOR_ESCAPE; colors[i + 1] = SYNTAX_COLOR_ESCAPE; }
           i += 2;
         } else if (line[i] == '"') {
-          colors[i++] = SYNTAX_COLOR_STRING;
+          if (colors) colors[i] = SYNTAX_COLOR_STRING;
+          i++;
           break;
         } else {
-          colors[i++] = SYNTAX_COLOR_STRING;
+          if (colors) colors[i] = SYNTAX_COLOR_STRING;
+          i++;
         }
       }
       continue;
@@ -139,17 +142,19 @@ void syntax_highlight_line(const char *line, int len,
 
     /* Char literal — escape sequences highlighted differently */
     if (line[i] == '\'') {
-      colors[i++] = SYNTAX_COLOR_STRING;
+      if (colors) colors[i] = SYNTAX_COLOR_STRING;
+      i++;
       while (i < len) {
         if (line[i] == '\\' && i + 1 < len) {
-          colors[i]     = SYNTAX_COLOR_ESCAPE;
-          colors[i + 1] = SYNTAX_COLOR_ESCAPE;
+          if (colors) { colors[i] = SYNTAX_COLOR_ESCAPE; colors[i + 1] = SYNTAX_COLOR_ESCAPE; }
           i += 2;
         } else if (line[i] == '\'') {
-          colors[i++] = SYNTAX_COLOR_STRING;
+          if (colors) colors[i] = SYNTAX_COLOR_STRING;
+          i++;
           break;
         } else {
-          colors[i++] = SYNTAX_COLOR_STRING;
+          if (colors) colors[i] = SYNTAX_COLOR_STRING;
+          i++;
         }
       }
       continue;
@@ -157,45 +162,52 @@ void syntax_highlight_line(const char *line, int len,
 
     /* Number */
     if (is_digit(line[i])) {
-      while (i < len && (is_alnum(line[i]) || line[i] == '.' || line[i] == '_'))
-        colors[i++] = SYNTAX_COLOR_NUMBER;
+      while (i < len && (is_alnum(line[i]) || line[i] == '.' || line[i] == '_')) {
+        if (colors) colors[i] = SYNTAX_COLOR_NUMBER;
+        i++;
+      }
       continue;
     }
 
     /* Member access: .name or ->name — color the member identifier */
     if (line[i] == '.' && i + 1 < len && is_alpha(line[i + 1])) {
-      colors[i++] = SYNTAX_COLOR_OPERATOR;
+      if (colors) colors[i] = SYNTAX_COLOR_OPERATOR;
+      i++;
       int start = i;
       while (i < len && is_alnum(line[i])) i++;
-      for (int k = start; k < i; k++) colors[k] = SYNTAX_COLOR_MEMBER;
+      if (colors)
+        for (int k = start; k < i; k++) colors[k] = SYNTAX_COLOR_MEMBER;
       continue;
     }
     if (line[i] == '-' && i + 1 < len && line[i + 1] == '>' &&
         i + 2 < len && is_alpha(line[i + 2])) {
-      colors[i] = SYNTAX_COLOR_OPERATOR;
-      colors[i + 1] = SYNTAX_COLOR_OPERATOR;
+      if (colors) { colors[i] = SYNTAX_COLOR_OPERATOR; colors[i + 1] = SYNTAX_COLOR_OPERATOR; }
       i += 2;
       int start = i;
       while (i < len && is_alnum(line[i])) i++;
-      for (int k = start; k < i; k++) colors[k] = SYNTAX_COLOR_MEMBER;
+      if (colors)
+        for (int k = start; k < i; k++) colors[k] = SYNTAX_COLOR_MEMBER;
       continue;
     }
 
     /* '-' not part of '->' — treat as operator */
     if (line[i] == '-') {
-      colors[i++] = SYNTAX_COLOR_OPERATOR;
+      if (colors) colors[i] = SYNTAX_COLOR_OPERATOR;
+      i++;
       continue;
     }
 
     /* Operator */
     if (is_operator(line[i])) {
-      colors[i++] = SYNTAX_COLOR_OPERATOR;
+      if (colors) colors[i] = SYNTAX_COLOR_OPERATOR;
+      i++;
       continue;
     }
 
     /* Preprocessor directive */
     if (is_preproc) {
-      colors[i++] = SYNTAX_COLOR_PREPROC;
+      if (colors) colors[i] = SYNTAX_COLOR_PREPROC;
+      i++;
       continue;
     }
 
@@ -209,24 +221,26 @@ void syntax_highlight_line(const char *line, int len,
       int j = skip_ws(line, i, len);
       bool is_call = (j < len && line[j] == '(');
 
-      uint32_t color;
-      if (match_word(keywords, line + start, word_len))
-        color = SYNTAX_COLOR_KEYWORD;
-      else if (match_word(types, line + start, word_len))
-        color = SYNTAX_COLOR_TYPE;
-      else if (is_call)
-        color = SYNTAX_COLOR_FUNCTION;
-      else if (is_macro(line + start, word_len))
-        color = SYNTAX_COLOR_MACRO;
-      else
-        color = SYNTAX_COLOR_DEFAULT;
-
-      for (int k = start; k < i; k++) colors[k] = color;
+      if (colors) {
+        uint32_t color;
+        if (match_word(keywords, line + start, word_len))
+          color = SYNTAX_COLOR_KEYWORD;
+        else if (match_word(types, line + start, word_len))
+          color = SYNTAX_COLOR_TYPE;
+        else if (is_call)
+          color = SYNTAX_COLOR_FUNCTION;
+        else if (is_macro(line + start, word_len))
+          color = SYNTAX_COLOR_MACRO;
+        else
+          color = SYNTAX_COLOR_DEFAULT;
+        for (int k = start; k < i; k++) colors[k] = color;
+      }
       continue;
     }
 
     /* Everything else */
-    colors[i++] = SYNTAX_COLOR_DEFAULT;
+    if (colors) colors[i] = SYNTAX_COLOR_DEFAULT;
+    i++;
   }
 
   *out_block_comment = block_comment;
