@@ -16,3 +16,6 @@ trace.txt
 *.a
 .gdbinit
 docs/
+
+# Docs
+!proj/docs/Doxyfile
