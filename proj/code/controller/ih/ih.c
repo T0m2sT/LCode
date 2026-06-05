@@ -1,16 +1,15 @@
 #include <lcom/lcf.h>
 
-#include "proj.h"
 #include "controller/ih/ih.h"
 #include "fw/common/utils.h"
 #include "controller/input/keyboard.h"
 #include "controller/input/mouse.h"
-#include "controller/commands.h"
+#include "controller/commands/commands.h"
 #include "controller/serial.h"
-#include "model/command_bar.h"
+#include "model/command_bar/command_bar.h"
 #include "fw/drivers/video.h"
-#include "render_flag.h"
-#include "model/time.h"
+#include "model/render_state.h"
+#include "model/time/clock.h"
 
 static uint8_t irq_timer = 0, irq_keyboard = 0, irq_mouse = 0, irq_serial = 0;
 packet_scancode ps = {

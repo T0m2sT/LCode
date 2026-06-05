@@ -1,4 +1,4 @@
-#include "model/time.h"
+#include "model/time/clock.h"
 
 static char time_buf[16];
 static int last_second = -1;

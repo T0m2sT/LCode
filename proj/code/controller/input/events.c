@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "controller/commands.h"
+#include "controller/commands/commands.h"
 
 #define INPUT_EVENT_QUEUE_SIZE 64
 

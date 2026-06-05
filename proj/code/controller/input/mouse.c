@@ -3,7 +3,7 @@
 #include "controller/input/mouse.h"
 #include "controller/input/events.h"
 #include "fw/drivers/video.h"
-#include "render_flag.h"
+#include "model/render_state.h"
 
 static int mouse_x = 0, mouse_y = 0;
 static bool mouse_initialized = false;

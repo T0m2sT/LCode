@@ -1,4 +1,4 @@
-#include "model/filetree.h"
+#include "model/filetree/filetree.h"
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
