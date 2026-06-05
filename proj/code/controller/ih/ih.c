@@ -1,6 +1,5 @@
 #include <lcom/lcf.h>
 
-#include "proj.h"
 #include "controller/ih/ih.h"
 #include "fw/common/utils.h"
 #include "controller/input/keyboard.h"

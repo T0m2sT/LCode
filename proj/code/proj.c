@@ -4,9 +4,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define WORK_DIR "/home/lcom/labs/proj/docs"
-
-#include "proj.h"
 #include "fw/drivers/video.h"
 #include "fw/drivers/serial_port.h"
 #include "controller/ih/ih.h"
@@ -18,6 +15,11 @@
 #include "model/command_bar/command_bar.h"
 #include "model/filetree/filetree.h"
 #include "model/render_state.h"
+#include "fw/hw/vbe.h"
+
+#define WORK_DIR "/home/lcom/labs/" // Dir open by LCode
+#define VIDEO_MODE VBE_864p_DC // VBE video mode used (1152x864, 32-bit direct color)
+
 
 int(proj_main_loop)(int argc, char *argv[]) {
   int ipc_status, r;

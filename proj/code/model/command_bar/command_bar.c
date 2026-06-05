@@ -1,6 +1,6 @@
 #include "model/command_bar/command_bar.h"
-#include "proj.h"
 #include <string.h>
+#include "fw/drivers/timer.h"
 
 static EditorMode mode = MODE_EDITOR;
 static char filename[CMD_BUF_SIZE] = "untitled";
