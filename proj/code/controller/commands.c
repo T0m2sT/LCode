@@ -54,6 +54,13 @@ static void execute_open(const char *name) {
   scene_set_language(syntax_detect_language(name));
 }
 
+/**
+ * @brief Executes the full file synchronization process over the serial port.
+ * 
+ * Starts by sending a CMD_FILE_START packet to prepare the remote editor,
+ * and then iterates through all lines of the local file, sending them via CMD_FILE_LINE.
+ * Finally, updates the remote cursor position to match the local cursor.
+ */
 static void execute_sync() {
   
   const char *filename = command_bar_get_filename();
@@ -79,6 +86,13 @@ static void execute_sync() {
   build_packet_serial(CMD_MOVE_CURSOR, load, 4, 0);
 }
 
+/**
+ * @brief Command bar handler for the ":sync" command.
+ * 
+ * Enables the remote synchronization mode and triggers the full file share process.
+ * 
+ * @param args Arguments passed in the command bar (unused).
+ */
 static void cmd_sync(const char *args) {
   remote = true; 
   execute_sync();
@@ -151,6 +165,18 @@ static void dispatch_command_mode(KeyEvent ev) {
   }
 }
 
+/**
+ * @brief Calculates and synchronizes a block of memory over the serial port.
+ * 
+ * Implements the Delta Sync logic for complex operations (like paste or cut).
+ * If exactly 1 line is modified, it sends a simple CMD_UPDATE_LINE.
+ * If multiple lines are affected, it sends a CMD_REPLACE_BLOCK to adjust the remote
+ * heap memory dynamically, followed by multiple CMD_UPDATE_LINE packets to fill the text.
+ * 
+ * @param start_row The starting row of the modified block.
+ * @param deleted_count The number of lines that were deleted.
+ * @param inserted_count The number of new lines inserted.
+ */
 static void sync_block(int start_row, int deleted_count, int inserted_count) {
   if (!remote) return;
   
@@ -477,6 +503,15 @@ void commands_dispatch_mouse(MouseEvent me) {
 static uint16_t file_num_lines = 0;
 static uint16_t lines_contador = 0;
 
+/**
+ * @brief Dispatches and executes an incoming serial event on the local editor.
+ * 
+ * Maps each SerialCommand received from the network to the corresponding 
+ * local editor function (e.g., editor_remote_insert_char, editor_remote_replace_block).
+ * Also controls the render flags to optimize screen redraws based on the impact of the command.
+ * 
+ * @param se The parsed serial event containing the command and payload.
+ */
 void commands_dispatch_serial(SerialEvent se) {
   if (se.payload_len == 0 && se.cmd != CMD_DELETE_CHAR && se.cmd != CMD_FILE_LINE) return;
 
