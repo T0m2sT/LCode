@@ -33,7 +33,10 @@ static int compare_entries(const void *a, const void *b) {
   return strcmp(ea->name, eb->name);
 }
 
-const char *filetree_get_error() { return error_msg[0] ? error_msg : NULL; }
+const char *filetree_get_error(){ 
+  // NULL if no error
+  return error_msg[0] ? error_msg : NULL;
+} 
 
 FiletreeResult filetree_refresh() {
   entry_count = 0;
@@ -50,7 +53,9 @@ FiletreeResult filetree_refresh() {
     //Assume no more than 256 files in dir, keeping it simple. Worth noting that can be improved
     if (entry_count >= FILETREE_MAX_ENTRIES) break;
 
-    if (strcmp(ep->d_name, ".") == 0) continue;
+    // skip self; ".." is kept for parent navigation
+    if (strcmp(ep->d_name, ".") == 0) continue; 
+
     strncpy(entries[entry_count].name, ep->d_name, FILETREE_NAME_LEN - 1);
     entries[entry_count].name[FILETREE_NAME_LEN - 1] = '\0';
 
@@ -63,14 +68,19 @@ FiletreeResult filetree_refresh() {
   }
   closedir(dp);
   qsort(entries, entry_count, sizeof(FileEntry), compare_entries);
-  if (cursor >= entry_count) cursor = entry_count > 0 ? entry_count - 1 : 0;
+
+  // clamp cursor after count may have shrunk
+  if (cursor >= entry_count) cursor = entry_count > 0 ? entry_count - 1 : 0; 
+
   return FILETREE_OK;
 }
 
 void filetree_init() {
   if (!getcwd(cwd, sizeof(cwd))) {
     snprintf(error_msg, sizeof(error_msg), "Cannot get working directory: %s", strerror(errno));
-    strncpy(cwd, "/", sizeof(cwd));
+
+    // fall back to root so the tree is still usable
+    strncpy(cwd, "/", sizeof(cwd)); 
   }
   filetree_refresh();
 }
@@ -91,15 +101,23 @@ const FileEntry *filetree_get_entry(int i) {
 }
 
 void filetree_move_up(int vis_rows) {
-  if (cursor > scroll + vis_rows) cursor = scroll + vis_rows;
+  // clamp if cursor drifted out of view
+  if (cursor > scroll + vis_rows) cursor = scroll + vis_rows; 
+
   if (cursor > 0) cursor--;
-  if (cursor < scroll) scroll = cursor;
+
+  // scroll follows cursor upward
+  if (cursor < scroll) scroll = cursor; 
 }
 
 void filetree_move_down(int vis_rows) {
-  if (cursor < scroll) cursor = scroll-1;
+  // clamp if cursor drifted out of view
+  if (cursor < scroll) cursor = scroll - 1; 
+
   if (cursor < entry_count - 1) cursor++;
-  if (cursor >= scroll + vis_rows) scroll = cursor - vis_rows + 1;
+
+  // scroll follows cursor downward
+  if (cursor >= scroll + vis_rows) scroll = cursor - vis_rows + 1; 
 }
 
 void filetree_set_cursor(int idx, int vis_rows) {
@@ -125,14 +143,17 @@ void filetree_set_cursor(int idx, int vis_rows) {
 }
 
 FiletreeResult filetree_go_parent() {
-  if (strcmp(cwd, "/") == 0) return FILETREE_OK;
+  if (strcmp(cwd, "/") == 0) return FILETREE_OK; // already at root
 
   char *last = strrchr(cwd, '/');
-  if (last && last != cwd){
-    *last = '\0';
-  }
+  if (last && last != cwd) {
+    // truncate at last slash
+    *last = '\0'; 
+
+  } 
   else {
-    strncpy(cwd, "/", sizeof(cwd));
+    // last slash IS the root slash
+    strncpy(cwd, "/", sizeof(cwd)); 
   }
   cursor = 0;
   scroll = 0;
@@ -154,6 +175,7 @@ FiletreeResult filetree_enter_selected() {
     return FILETREE_ERR;
   }
 
+  // avoid "//dirname" when cwd is exactly "/"
   if (strlen(cwd) == 1 && cwd[0] == '/')
     snprintf(cwd, sizeof(cwd), "/%s", e->name);
   else {
@@ -178,7 +200,7 @@ void filetree_scroll_by(int delta, int vis_rows) {
   if (scroll < 0) scroll = 0;
 
   int max_scroll = entry_count - vis_rows;
-  if (max_scroll < 0) max_scroll = 0;
+  if (max_scroll < 0) max_scroll = 0; // content fits; no scrolling needed
 
   if (scroll > max_scroll)
     scroll = max_scroll;
