@@ -1,4 +1,4 @@
-#include "model/session_time.h"
+#include "model/time/session_time.h"
 
 #include "fw/drivers/timer.h"
 

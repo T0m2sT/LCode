@@ -9,8 +9,8 @@
 #include "controller/ih/ih.h"
 #include "view/highlight_cache.h"
 #include "controller/input/mouse.h"
-#include "model/clock.h"
-#include "model/session_time.h"
+#include "model/time/clock.h"
+#include "model/time/session_time.h"
 #include <string.h>
 
 #define COLOR_BG 0x282C34

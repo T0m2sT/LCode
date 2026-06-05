@@ -2,7 +2,7 @@
 #include "controller/commands.h"
 #include "model/filetree.h"
 #include "model/command_bar.h"
-#include "model/session_time.h"
+#include "model/time/session_time.h"
 #include "view/scene.h"
 #include "model/render_state.h"
 #include <string.h>
