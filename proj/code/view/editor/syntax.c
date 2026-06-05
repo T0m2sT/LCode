@@ -1,4 +1,4 @@
-#include "view/syntax.h"
+#include "view/editor/syntax.h"
 #include <string.h>
 #include <stdbool.h>
 

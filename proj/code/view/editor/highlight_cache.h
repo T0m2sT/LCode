@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lcom/lcf.h>
-#include "view/syntax.h"
+#include "view/editor/syntax.h"
 
 /**
  * @file highlight_cache.h

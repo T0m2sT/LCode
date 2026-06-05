@@ -7,7 +7,7 @@
 #include "model/command_bar.h"
 #include "model/filetree.h"
 #include "controller/ih/ih.h"
-#include "view/highlight_cache.h"
+#include "view/editor/highlight_cache.h"
 #include "controller/input/mouse.h"
 #include "model/time/clock.h"
 #include "model/time/session_time.h"

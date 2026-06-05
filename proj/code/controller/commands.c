@@ -4,7 +4,7 @@
 #include "model/editor.h"
 #include "model/command_bar.h"
 #include "view/renderer/scene.h"
-#include "view/syntax.h"
+#include "view/editor/syntax.h"
 #include "model/render_state.h"
 #include "controller/serial.h"
 #include <stdio.h>

@@ -13,7 +13,7 @@
 #include "controller/commands.h"
 #include "controller/input/events.h"
 #include "view/renderer/scene.h"
-#include "view/syntax.h"
+#include "view/editor/syntax.h"
 #include "model/editor.h"
 #include "model/command_bar.h"
 #include "model/filetree.h"
