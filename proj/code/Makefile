@@ -29,7 +29,7 @@ LDLIBS += -lm
 # define headers dependencies
 HDRS = $(find . -name *.c)
 
-SRCS = proj.c ih.c render_state.c scene.c font.c mouse_cursor.c syntax.c highlight_cache.c editor.c keyboard.c mouse.c events.c commands.c command_bar.c filetree.c filetree_commands.c serial.c time.c session_time.c
+SRCS = proj.c ih.c render_state.c scene.c font.c mouse_cursor.c syntax.c highlight_cache.c editor.c keyboard.c mouse.c events.c commands.c command_bar.c filetree.c filetree_commands.c serial.c clock.c session_time.c
 OBJS = ${SRCS:.c=.o}
 .PATH: controller/ih controller controller/input view model
 .PATH.o: build

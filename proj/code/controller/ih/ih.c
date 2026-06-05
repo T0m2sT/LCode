@@ -10,7 +10,7 @@
 #include "model/command_bar.h"
 #include "fw/drivers/video.h"
 #include "model/render_state.h"
-#include "model/time.h"
+#include "model/clock.h"
 
 static uint8_t irq_timer = 0, irq_keyboard = 0, irq_mouse = 0, irq_serial = 0;
 packet_scancode ps = {

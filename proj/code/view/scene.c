@@ -9,7 +9,7 @@
 #include "controller/ih/ih.h"
 #include "view/highlight_cache.h"
 #include "controller/input/mouse.h"
-#include "model/time.h"
+#include "model/clock.h"
 #include "model/session_time.h"
 #include <string.h>
 
