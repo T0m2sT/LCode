@@ -107,11 +107,14 @@ void error_example() {
 }
 
 int rtc_example() {
-  rtc_date date = {0, 0, 0};
+  rtc_date date = {0, 0, 0, 0, 0, 0};
   if (rtc_read_date(&date) != OK) return 1;
 
   printf("\n\n");
   printf("RTC EXAMPLE \n");
+  printf("seconds: %u \n", date.seconds);
+  printf("minutes: %u \n", date.minutes);
+  printf("hours: %u \n", date.hours);
   printf("day: %u \n", date.day);
   printf("month: %u \n", date.month);
   printf("year: %u", date.year);
@@ -120,7 +123,7 @@ int rtc_example() {
 }
 
 void test_rtc_date() {
-  rtc_date date = {0, 0, 0};
+  rtc_date date = {0, 0, 0, 0, 0, 0};
   rtc_read_date(&date);
 
   struct timespec ts;
