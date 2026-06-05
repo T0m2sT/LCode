@@ -16,13 +16,15 @@ static void open_filetree_file() {
   FiletreeResult r = filetree_enter_selected();
 
   if (r == FILETREE_FILE) {
+    // reset session timer when a new file is opened
     session_time_reset();
 
     char path[PATH_MAX];
     filetree_get_selected_path(path, sizeof(path));
     commands_open_file(path);
+    // return focus to editor after opening
     filetree_set_focused(false);
-    
+
   } else if (r == FILETREE_ERR) {
     show_filetree_error();
   }
@@ -57,6 +59,7 @@ static void dispatch_filetree_mode(KeyEvent ev) {
 }
 
 bool filetree_commands_try(KeyEvent ev) {
+  // ctrl+b toggles filetree visibility and focus together
   if (ev.ctrl && ev.c == 'b') {
     bool now_visible = !filetree_is_visible();
     filetree_set_visible(now_visible);
@@ -65,6 +68,7 @@ bool filetree_commands_try(KeyEvent ev) {
     return true;
   }
 
+  // consume all events while filetree is focused
   if (filetree_is_focused()) {
     dispatch_filetree_mode(ev);
     return true;
@@ -76,6 +80,7 @@ bool filetree_commands_try(KeyEvent ev) {
 bool filetree_commands_mouse(MouseEvent me) {
 
   int idx;
+  // reset focus state; re-set below if click lands inside the panel
   filetree_set_focused(false);
 
   if (me.scroll != 0 && scene_px_to_filetree(me.click_x, me.click_y, &idx)) {
@@ -86,14 +91,16 @@ bool filetree_commands_mouse(MouseEvent me) {
   }
 
   if (scene_px_to_filetree(me.click_x, me.click_y, &idx)) {
-    
+
     filetree_set_focused(true);
 
+    // clicked below all entries: just focus the panel
     if (idx == -1) {
       set_render(RENDER_FULL);
       return true;
     }
-    
+
+    // second click on same entry opens it (double-click behaviour)
     bool same = (idx == filetree_get_cursor());
 
     filetree_set_cursor(idx, scene_get_vis_rows());
@@ -101,11 +108,11 @@ bool filetree_commands_mouse(MouseEvent me) {
     if (same) {
       open_filetree_file();
     }
-      
+
     set_render(RENDER_FULL);
     return true;
   }
-  
+
   set_render(RENDER_FULL);
   return false;
 }
