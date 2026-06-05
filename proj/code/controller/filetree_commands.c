@@ -2,6 +2,7 @@
 #include "controller/commands.h"
 #include "model/filetree.h"
 #include "model/command_bar.h"
+#include "model/session_time.h"
 #include "view/scene.h"
 #include "render_flag.h"
 #include <string.h>
@@ -15,6 +16,8 @@ static void open_filetree_file() {
   FiletreeResult r = filetree_enter_selected();
 
   if (r == FILETREE_FILE) {
+    session_time_reset();
+
     char path[PATH_MAX];
     filetree_get_selected_path(path, sizeof(path));
     commands_open_file(path);

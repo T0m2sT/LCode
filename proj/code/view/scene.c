@@ -10,6 +10,7 @@
 #include "view/highlight_cache.h"
 #include "controller/input/mouse.h"
 #include "model/time.h"
+#include "model/session_time.h"
 #include <string.h>
 
 #define COLOR_BG 0x282C34
@@ -197,6 +198,11 @@ static void render_status_bar() {
   int x = layout.status_bar.w - (len * FONT_W) - 4;
 
   draw_string(x, sy, t, COLOR_STATUS_FG);
+
+  // Session time 
+  char st[16];
+  session_time_format(st, 16);
+  draw_string(layout.status_bar.x + layout.status_bar.w/2 - 32, layout.status_bar.y, st, COLOR_STATUS_FG);
 }
 
 static void flip_status_bar() {
