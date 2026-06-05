@@ -9,6 +9,7 @@
 #include "model/command_bar.h"
 #include "fw/drivers/video.h"
 #include "render_flag.h"
+#include "model/time.h"
 
 static uint8_t irq_timer = 0, irq_keyboard = 0, irq_mouse = 0, irq_serial = 0;
 packet_scancode ps = {
@@ -93,6 +94,11 @@ int unsubscribe_interrupts() {
 void timer_handler() {
   timer_int_handler();
   if (command_bar_tick()) set_render(RENDER_STATUS);
+
+  if (get_int_counter() % TIMER_HZ == 0) {
+    time_update();
+    set_render(RENDER_STATUS);
+  }
 }
 
 void keyboard_handler() {

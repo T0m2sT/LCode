@@ -9,6 +9,7 @@
 #include "controller/ih/ih.h"
 #include "view/highlight_cache.h"
 #include "controller/input/mouse.h"
+#include "model/time.h"
 #include <string.h>
 
 #define COLOR_BG 0x282C34
@@ -189,6 +190,13 @@ static void render_status_bar() {
   } else {
     draw_string(4, sy, command_bar_get_filename(), COLOR_STATUS_FG);
   }
+
+  // Here current time is being drawn
+  const char *t = time_get_string();
+  int len = strlen(t);
+  int x = layout.status_bar.w - (len * FONT_W) - 4;
+
+  draw_string(x, sy, t, COLOR_STATUS_FG);
 }
 
 static void flip_status_bar() {

@@ -24,7 +24,7 @@ static int rtc_read_reg(uint8_t reg, uint8_t *val) {
 int rtc_read_date(rtc_date *date) {
   if (!date) return fail(ERR_RTC, "rtc_read_date: NULL date pointer");
 
-  uint8_t regA, regB, day, month, year;
+  uint8_t regA, regB, seconds, minutes, hours, day, month, year;
 
   do {
     tickdelay(micros_to_ticks(50));
@@ -38,6 +38,12 @@ int rtc_read_date(rtc_date *date) {
 
   bool isBCD = !(regB & RTC_DM_MSK);
 
+  if (rtc_read_reg(RTC_REG_SECONDS, &seconds) != OK)
+    return fail(ERR_RTC, "rtc_read_date: failed to read seconds");
+  if (rtc_read_reg(RTC_REG_MINUTES, &minutes) != OK)
+    return fail(ERR_RTC, "rtc_read_date: failed to read minutes");
+  if (rtc_read_reg(RTC_REG_HOURS, &hours) != OK)
+    return fail(ERR_RTC, "rtc_read_date: failed to read hours");
   if (rtc_read_reg(RTC_REG_DAY, &day) != OK)
     return fail(ERR_RTC, "rtc_read_date: failed to read day");
   if (rtc_read_reg(RTC_REG_MONTH, &month) != OK)
@@ -46,11 +52,17 @@ int rtc_read_date(rtc_date *date) {
     return fail(ERR_RTC, "rtc_read_date: failed to read year");
 
   if (isBCD) {
+    seconds = bcd_to_bin(seconds);
+    minutes = bcd_to_bin(minutes);
+    hours = bcd_to_bin(hours);
     day = bcd_to_bin(day);
     month = bcd_to_bin(month);
     year = bcd_to_bin(year);
   }
 
+  date->seconds = seconds;
+  date->minutes = minutes;
+  date->hours = hours;
   date->day = day;
   date->month = month;
   date->year = year;
