@@ -31,6 +31,7 @@ static void execute_save(const char *name) {
     fprintf(f, "%s\n", editor_get_line(r));
   fclose(f);
   command_bar_set_filename(name);
+  // update syntax language in case the extension changed
   scene_set_language(syntax_detect_language(name));
 }
 
@@ -39,11 +40,13 @@ static void execute_open(const char *name) {
   FILE *f = fopen(name, "r");
   if (!f) return;
 
+  // reset buffer before loading new content
   editor_init();
 
   char line[FILE_READ_BUF];
   while (fgets(line, sizeof(line), f)) {
     int len = strlen(line);
+    // strip trailing newline from fgets output
     if (len > 0 && line[len - 1] == '\n') line[--len] = '\0';
     if (editor_load_line(line, len) != EDITOR_OK) break;
   }
@@ -81,11 +84,13 @@ static const CommandEntry command_table[] = {
 static void execute_command(const char *raw) {
   char name[CMD_BUF_SIZE];
   const char *args = "";
+  // split raw input at the first space into command name and args
   int i = 0;
   while (raw[i] && raw[i] != ' ' && i < CMD_BUF_SIZE - 1) i++;
   strncpy(name, raw, i);
   name[i] = '\0';
   if (raw[i] == ' ') args = raw + i + 1;
+  // linear scan of command table; NULL-terminated sentinel ends the loop
   for (int j = 0; command_table[j].name; j++) {
     if (strcmp(command_table[j].name, name) == 0) {
       command_table[j].handler(args);
@@ -122,6 +127,7 @@ void commands_open_file(const char *path) {
 }
 
 void commands_dispatch(KeyEvent ev) {
+  // filetree consumes the event if it is focused
   if (filetree_commands_try(ev)) return;
 
   if (command_bar_get_mode() == MODE_COMMAND) {
@@ -129,6 +135,7 @@ void commands_dispatch(KeyEvent ev) {
     return;
   }
 
+  // escape and ctrl+q are both quit shortcuts
   if (ev.escape || (ev.ctrl && ev.c == 'q')) {
     quit_flag = true;
     return;
@@ -182,6 +189,7 @@ void commands_dispatch(KeyEvent ev) {
   }
 
   if (ev.dir != DIR_NONE) {
+    // shift extends selection from anchor; no shift clears it
     if (ev.shift) {
       if (!editor_sel_is_active()) editor_sel_set_anchor();
     } else {
@@ -233,6 +241,7 @@ void commands_dispatch(KeyEvent ev) {
     return;
   }
   if (ev.ctrl && ev.c == 's') {
+    // untitled file: prompt for a name instead of saving immediately
     if (strcmp(command_bar_get_filename(), "untitled") == 0)
       command_bar_start_prefill("save ");
     else
@@ -276,6 +285,7 @@ void commands_dispatch(KeyEvent ev) {
 }
 
 void commands_dispatch_mouse(MouseEvent me) {
+  // release clears any active selection
   if (!me.left_holding) {
     editor_sel_clear();
   }
@@ -283,7 +293,7 @@ void commands_dispatch_mouse(MouseEvent me) {
   if (!me.left_clicked && me.scroll == 0 && !me.left_holding) return;
 
   if (scene_click_scrollbar(me.click_x, me.click_y)) return;
-  
+
   if (filetree_commands_mouse(me)) return;
 
   if (me.scroll != 0) {
@@ -294,17 +304,20 @@ void commands_dispatch_mouse(MouseEvent me) {
 
   int row, col;
   if (scene_px_to_text(me.click_x, me.click_y, &row, &col) && me.left_clicked) {
+    // click: move cursor and start a new selection anchor
     editor_sel_clear();
     editor_set_cursor(row, col);
     set_render_ex(RENDER_CHAR);
     if (!editor_sel_is_active()) editor_sel_set_anchor();
-  } else if (scene_px_to_text(me.click_x, me.click_y, &row, &col) && me.left_holding){
+  } else if (scene_px_to_text(me.click_x, me.click_y, &row, &col) && me.left_holding) {
+    // drag: extend selection by moving cursor
     editor_set_cursor(row, col);
   }
 
 }
 
 void commands_dispatch_serial(SerialEvent se) {
+  // CMD_DELETE_CHAR legitimately has zero payload; all others require at least one byte
   if (se.payload_len == 0 && se.cmd != CMD_DELETE_CHAR) return;
   EditorResult r;
   switch (se.cmd) {
@@ -328,18 +341,21 @@ void commands_dispatch_serial(SerialEvent se) {
       break;
     }  
     case CMD_MOVE_CURSOR:{
+      // row and col are each encoded as big-endian uint16 (2 bytes each)
       uint8_t row_msb = se.payload_buf [0];
       uint8_t row_lsb = se.payload_buf [1];
       uint8_t col_msb = se.payload_buf [2];
       uint8_t col_lsb = se.payload_buf [3];
-      
+
       int remote_cursor_row = row_msb << 8 | row_lsb;
       int remote_cursor_col = col_msb << 8 | col_lsb;
 
+      // row changed: old and new lines both need redraw
       if (editor_get_remote_cursor_row()!=remote_cursor_row){
         editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
         set_render_ex(RENDER_FULL);
       }
+      // same row: only redraw that line
       else{
         editor_set_remote_cursor(remote_cursor_row,remote_cursor_col);
         set_render_ex(RENDER_REMOTE_LINE);
