@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lcom/lcf.h>
-#include "model/editor.h"
+#include "model/editor/editor.h"
 
 /**
  * @file syntax.h

@@ -1,6 +1,6 @@
 #include "view/editor/highlight_cache.h"
 #include "view/editor/syntax.h"
-#include "model/editor.h"
+#include "model/editor/editor.h"
 #include <string.h>
 #include <stdlib.h>
 

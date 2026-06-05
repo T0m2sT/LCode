@@ -2,7 +2,7 @@
 #include "controller/commands.h"
 #include "controller/input/events.h"
 #include "fw/drivers/serial_port.h"
-#include "model/editor.h"
+#include "model/editor/editor.h"
 #include "model/render_state.h"
 
 typedef enum {
